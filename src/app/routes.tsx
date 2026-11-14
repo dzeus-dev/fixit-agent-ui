@@ -2,6 +2,7 @@ import { createBrowserRouter } from "react-router";
 import { AppShell } from "./components";
 import { CorrelationReviewPage } from "./correlation-review";
 import { RoutingDecisionProvider } from "./routing-decision";
+import { ResidentStateProvider } from "./resident-state";
 import { TechnicianTaskProvider } from "./technician-task-state";
 import {
   ApprovalPage,
@@ -58,7 +59,11 @@ export const router = createBrowserRouter([
   },
   {
     path: "/resident",
-    Component: () => <AppShell role="resident" />,
+    Component: () => (
+      <ResidentStateProvider>
+        <AppShell role="resident" />
+      </ResidentStateProvider>
+    ),
     children: [
       { index: true, Component: ResidentRedirect },
       { path: "report", Component: ReportPage },

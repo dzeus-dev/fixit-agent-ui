@@ -349,7 +349,9 @@ function TopBar({ role, onMenu }: { role: Role; onMenu: () => void }) {
           <Search size={16} />
           <input
             className="w-full bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-400"
-            placeholder="Search incidents, tickets..."
+            placeholder={
+              role === "resident" ? "Search your reports..." : "Search incidents, tickets..."
+            }
           />
           <kbd className="text-[10px] font-semibold text-slate-400">⌘K</kbd>
         </label>

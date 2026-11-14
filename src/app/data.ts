@@ -57,6 +57,37 @@ export interface TechnicianTask {
   escalationReason?: string;
 }
 
+export type ResidentStatus =
+  | "Report received"
+  | "Being reviewed"
+  | "Maintenance team assigned"
+  | "Maintenance team is working on it"
+  | "Resolution is being reviewed"
+  | "Issue resolved"
+  | "Follow-up required"
+  | "More information needed"
+  | "Additional safety review required";
+
+export interface ResidentTimelineEvent {
+  label: string;
+  timestamp: string;
+}
+
+export interface ResidentTicketView {
+  ticketId: string;
+  issue: string;
+  location: string;
+  additionalDetails?: string;
+  photoName?: string;
+  residentStatus: ResidentStatus;
+  relatedIncident: boolean;
+  relatedIncidentMessage?: string;
+  timeline: ResidentTimelineEvent[];
+  clarificationAnswer?: string;
+  resolutionSummary?: string;
+  feedback?: "Resolved" | "Still happening";
+}
+
 export const tickets: Ticket[] = [
   {
     id: "TKT-1024",

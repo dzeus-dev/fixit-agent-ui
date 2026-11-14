@@ -41,6 +41,7 @@ import {
 } from "./components";
 import { incidents, tickets, type Incident, type Ticket as TicketType } from "./data";
 import { IncidentIntelligencePage } from "./incident-detail";
+import { ResidentIssueStatusPage, ResidentReportPage } from "./resident-workflow";
 import { RoutingApprovalPage, RoutingRecommendationPage } from "./routing-workflow";
 import { TechnicianExecutionPage, TechnicianTaskQueuePage } from "./technician-workflow";
 
@@ -809,115 +810,11 @@ export function TaskDetailPage() {
 }
 
 export function ReportPage() {
-  const navigate = useNavigate();
-  function submit(event: FormEvent) {
-    event.preventDefault();
-    navigate("/resident/tickets/TKT-1024");
-  }
-  return (
-    <div className="mx-auto max-w-3xl">
-      <PageHeader
-        title="Report an issue"
-        description="Tell the property team what happened. Your report will stay individually traceable as a ticket."
-      />
-      <Card>
-        <form className="space-y-6 p-6" onSubmit={submit}>
-          <label className="form-label">
-            Issue description
-            <textarea
-              className="form-input min-h-32 resize-none"
-              placeholder="Describe what you noticed, when it started, and any immediate safety concerns..."
-              required
-            />
-          </label>
-          <label className="form-label">
-            Location / Unit
-            <input className="form-input" placeholder="e.g. Tower A / Unit 12-08" required />
-          </label>
-          <div>
-            <p className="form-label">
-              Image upload <span className="font-normal text-slate-400">(optional)</span>
-            </p>
-            <label className="mt-2 flex min-h-36 cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-slate-300 bg-slate-50 text-center hover:border-indigo-400 hover:bg-indigo-50/30">
-              <UploadCloud size={24} className="text-slate-400" />
-              <span className="mt-3 text-sm font-semibold text-slate-700">Upload a photo</span>
-              <span className="mt-1 text-xs text-slate-400">PNG or JPG up to 10 MB</span>
-              <input type="file" className="hidden" accept="image/*" />
-            </label>
-          </div>
-          <div className="flex justify-end border-t border-slate-100 pt-5">
-            <Button type="submit">
-              Submit Report <ArrowRight size={16} />
-            </Button>
-          </div>
-        </form>
-      </Card>
-    </div>
-  );
+  return <ResidentReportPage />;
 }
 
 export function ResidentTicketPage() {
-  const { id } = useParams();
-  const timeline = [
-    { label: "Submitted", detail: "Today, 9:42 AM", done: true },
-    { label: "Under Review", detail: "Property team is reviewing your report", done: true },
-    { label: "Assigned", detail: "Next step", done: false },
-    { label: "In Progress", detail: "", done: false },
-    { label: "Resolved", detail: "", done: false },
-  ];
-  return (
-    <div className="mx-auto max-w-4xl">
-      <PageHeader
-        eyebrow={`Ticket · ${id}`}
-        title="Ceiling leaking"
-        description="Tower A / Unit 12-08"
-        actions={<StatusBadge status="Under Review" />}
-      />
-      <div className="grid gap-6 lg:grid-cols-[.85fr_1.15fr]">
-        <Card>
-          <SectionHeading title="Report details" />
-          <dl className="px-5">
-            <DetailRow label="Ticket ID">{id}</DetailRow>
-            <DetailRow label="Issue">Ceiling leaking</DetailRow>
-            <DetailRow label="Submitted">Today, 9:42 AM</DetailRow>
-            <DetailRow label="Current status">
-              <StatusBadge status="Under Review" />
-            </DetailRow>
-          </dl>
-          <div className="mx-5 mb-5 rounded-lg bg-slate-50 p-4 text-sm leading-6 text-slate-600">
-            The property team has received your report and is assessing the next action.
-          </div>
-        </Card>
-        <Card>
-          <SectionHeading title="Report timeline" />
-          <div className="p-6">
-            {timeline.map((item, index) => (
-              <div key={item.label} className="relative flex gap-4 pb-7 last:pb-0">
-                {index < timeline.length - 1 && (
-                  <span
-                    className={`absolute left-[11px] top-6 h-full w-px ${item.done && timeline[index + 1].done ? "bg-indigo-400" : "bg-slate-200"}`}
-                  />
-                )}
-                <span
-                  className={`relative z-10 mt-0.5 grid size-6 shrink-0 place-items-center rounded-full ${item.done ? "bg-indigo-600 text-white" : "border-2 border-slate-200 bg-white text-transparent"}`}
-                >
-                  {item.done && <Check size={13} />}
-                </span>
-                <div>
-                  <p
-                    className={`text-sm font-semibold ${item.done ? "text-slate-900" : "text-slate-400"}`}
-                  >
-                    {item.label}
-                  </p>
-                  {item.detail && <p className="mt-1 text-xs text-slate-500">{item.detail}</p>}
-                </div>
-              </div>
-            ))}
-          </div>
-        </Card>
-      </div>
-    </div>
-  );
+  return <ResidentIssueStatusPage />;
 }
 
 export function NotFoundPage() {
