@@ -23,6 +23,7 @@ import {
   StatusBadge,
 } from "./components";
 import { incidents, tickets } from "./data";
+import { useRoutingDecisions } from "./routing-decision";
 
 type SlaState = "On track" | "At risk" | "Breached";
 
@@ -47,6 +48,12 @@ export function IncidentIntelligencePage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const incident = incidents.find((item) => item.id === id) ?? incidents[0];
+  const { decisions } = useRoutingDecisions();
+  const routingDecision = decisions[incident.id];
+  const assigned = routingDecision.status === "Approved" || routingDecision.status === "Changed";
+  const sentBack = routingDecision.status === "Sent Back";
+  const operationalStatus = assigned ? "Assigned" : sentBack ? "Under Review" : incident.status;
+  const operationalTeam = routingDecision.approvedTeam ?? routingDecision.currentTeam;
   const related = tickets.filter((ticket) => ticket.incident === incident.id);
   const [clarificationState, setClarificationState] = useState<"idle" | "composing" | "sent">(
     "idle",
@@ -79,7 +86,14 @@ export function IncidentIntelligencePage() {
         `Reports concentrated near ${incident.officialLocation}`,
       ];
   const signals = isWaterIncident
-    ? ["Multi-unit impact", "Active leakage", "Property damage risk", "Multiple related reports"]
+    ? [
+        "Multiple units affected",
+        "Active water leakage",
+        "Impact spreading across floors",
+        "Potential property damage",
+        "Short reporting window",
+        "SLA at risk",
+      ]
     : ["Operational disruption", `${incident.priority} priority`, "Related resident reports"];
   const gaps = isWaterIncident
     ? {
@@ -93,7 +107,7 @@ export function IncidentIntelligencePage() {
         uncertain: "Full extent of the affected area",
         clarification: "Confirm whether conditions have changed since the latest resident report.",
       };
-  const timeline = isWaterIncident
+  const baseTimeline = isWaterIncident
     ? [
         ["14:03", "First resident report received"],
         ["14:08", "Second related report received"],
@@ -110,10 +124,31 @@ export function IncidentIntelligencePage() {
         ["13:58", `${incident.currentTeam} recorded as the current team`],
         ["14:02", `Status updated to ${incident.status}`],
       ];
-  const primaryAction =
-    incident.status === "Pending Approval"
-      ? { label: "Review assignment", route: `/bql/incidents/${incident.id}/approval` }
-      : { label: "Review routing", route: `/bql/incidents/${incident.id}/routing` };
+  const timeline = [
+    ...baseTimeline,
+    ...(assigned
+      ? [["Now", `${operationalTeam} assignment approved by BQL`]]
+      : sentBack
+        ? [["Now", "BQL sent routing back for review"]]
+        : []),
+  ];
+  const primaryAction = assigned
+    ? {
+        label: "View assignment",
+        heading: "Monitor assignment and begin field work",
+        route: `/bql/incidents/${incident.id}/approval`,
+      }
+    : sentBack
+      ? {
+          label: "Review routing",
+          heading: "Review routing recommendation",
+          route: `/bql/incidents/${incident.id}/routing`,
+        }
+      : {
+          label: "Review assignment",
+          heading: `Approve routing to ${incident.recommendedTeam}`,
+          route: `/bql/incidents/${incident.id}/approval`,
+        };
 
   return (
     <>
@@ -158,7 +193,7 @@ export function IncidentIntelligencePage() {
             <PriorityBadge priority={incident.priority} />
           </HeaderFact>
           <HeaderFact label="Status">
-            <StatusBadge status={incident.status} />
+            <StatusBadge status={operationalStatus} />
           </HeaderFact>
           <HeaderFact label="SLA">
             <SlaBadge state={slaState} />
@@ -167,7 +202,7 @@ export function IncidentIntelligencePage() {
             <span className="text-sm font-bold text-slate-900">{incident.tickets}</span>
           </HeaderFact>
           <HeaderFact label="Current team">
-            <span className="text-sm font-bold text-slate-900">{incident.currentTeam}</span>
+            <span className="text-sm font-bold text-slate-900">{operationalTeam}</span>
           </HeaderFact>
         </div>
       </Card>
@@ -195,7 +230,13 @@ export function IncidentIntelligencePage() {
               />
               <SummaryItem
                 label="Current state"
-                text={`Reports are coordinated as one incident. BQL review is required for the ${incident.recommendedTeam} recommendation.`}
+                text={
+                  assigned
+                    ? `${operationalTeam} is assigned through a BQL-approved routing decision.`
+                    : sentBack
+                      ? `BQL sent the ${incident.recommendedTeam} recommendation back for routing review.`
+                      : `Reports are coordinated as one incident. BQL review is required for the ${incident.recommendedTeam} recommendation.`
+                }
               />
             </div>
             {correlatedScope && (
@@ -302,6 +343,45 @@ export function IncidentIntelligencePage() {
                       {signal}
                     </span>
                   ))}
+                </div>
+              </div>
+              <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                <div className="rounded-lg border border-indigo-100 bg-indigo-50/50 p-4">
+                  <div className="flex items-center gap-2">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.09em] text-indigo-600">
+                      AI assessment
+                    </p>
+                    <span className="rounded bg-indigo-100 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.07em] text-indigo-700">
+                      AI-generated
+                    </span>
+                  </div>
+                  <p className="mt-2 text-xs leading-5 text-slate-700">
+                    Multiple reports indicate an active water leak affecting several nearby units.
+                  </p>
+                </div>
+                <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+                  <div className="flex items-center gap-2">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.09em] text-slate-600">
+                      System checks
+                    </p>
+                    <span className="rounded bg-slate-200 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.07em] text-slate-600">
+                      System record
+                    </span>
+                  </div>
+                  <ul className="mt-2 space-y-1.5 text-xs text-slate-600">
+                    {[
+                      `${incident.tickets} related reports`,
+                      "Official location exists",
+                      "Affected area is correlation-derived",
+                      `SLA is ${slaState.toLowerCase()}`,
+                      "Incident is not resolved",
+                      "Workflow requires BQL approval",
+                    ].map((check) => (
+                      <li key={check} className="flex items-center gap-2">
+                        <CheckCircle2 size={13} className="shrink-0 text-emerald-600" /> {check}
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               </div>
               <div className="mt-5 flex items-start gap-3 rounded-lg border border-slate-200 bg-slate-50 p-4">
@@ -438,9 +518,9 @@ export function IncidentIntelligencePage() {
                 <SlaBadge state={slaState} />
               </DetailRow>
               <DetailRow label="Status">
-                <StatusBadge status={incident.status} />
+                <StatusBadge status={operationalStatus} />
               </DetailRow>
-              <DetailRow label="Current team">{incident.currentTeam}</DetailRow>
+              <DetailRow label="Current team">{operationalTeam}</DetailRow>
             </dl>
             <div className="mx-5 mb-5 flex gap-2 rounded-lg bg-slate-50 p-3 text-xs leading-5 text-slate-500">
               <ShieldCheck size={16} className="mt-0.5 shrink-0 text-slate-600" />
@@ -453,18 +533,35 @@ export function IncidentIntelligencePage() {
               <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-indigo-600">
                 Recommended Next Action
               </p>
-              <h2 className="mt-1.5 text-lg font-bold text-slate-950">{primaryAction.label}</h2>
+              <h2 className="mt-1.5 text-lg font-bold text-slate-950">{primaryAction.heading}</h2>
             </div>
             <div className="p-5">
-              <p className="text-[10px] font-bold uppercase tracking-[0.09em] text-indigo-600">
-                AI recommendation
-              </p>
-              <p className="mt-1 text-sm font-bold text-slate-900">{incident.recommendedTeam}</p>
-              <p className="mt-1 text-xs leading-5 text-slate-500">
-                {isWaterIncident
-                  ? "Multiple-unit active leakage + plumbing category + current team workload"
-                  : `${category} category + incident location + current team workload`}
-              </p>
+              {assigned ? (
+                <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 size={17} className="text-emerald-700" />
+                    <p className="text-[10px] font-bold uppercase tracking-[0.09em] text-emerald-700">
+                      Assignment · Human decision
+                    </p>
+                  </div>
+                  <p className="mt-2 text-sm font-bold text-slate-950">{operationalTeam}</p>
+                  <p className="mt-1 text-xs text-emerald-800">BQL-approved routing</p>
+                </div>
+              ) : (
+                <>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.09em] text-indigo-600">
+                    AI recommendation
+                  </p>
+                  <p className="mt-1 text-sm font-bold text-slate-900">
+                    {incident.recommendedTeam}
+                  </p>
+                  <p className="mt-1 text-xs leading-5 text-slate-500">
+                    {isWaterIncident
+                      ? "Multiple-unit active leakage + plumbing category + current team workload"
+                      : `${category} category + incident location + current team workload`}
+                  </p>
+                </>
+              )}
               <div className="my-4 border-t border-slate-100" />
               <p className="text-[10px] font-bold uppercase tracking-[0.09em] text-slate-500">
                 System checks
@@ -482,10 +579,10 @@ export function IncidentIntelligencePage() {
               </ul>
               <div className="my-4 border-t border-slate-100" />
               <p className="text-[10px] font-bold uppercase tracking-[0.09em] text-slate-500">
-                Human action
+                {assigned ? "Operations action" : "Human action"}
               </p>
               <Button className="mt-3 w-full" onClick={() => navigate(primaryAction.route)}>
-                {incident.status === "Pending Approval" ? "Review approval" : "Review routing"}
+                {primaryAction.label}
                 <ArrowRight size={16} />
               </Button>
               <Button
@@ -499,9 +596,11 @@ export function IncidentIntelligencePage() {
                 AI recommends → System verifies → BQL decides
               </p>
               <p className="mt-2 text-center text-[11px] leading-4 text-slate-500">
-                {incident.status === "Assigned" || incident.status === "In Progress"
+                {assigned
                   ? "Current assignment is recorded in the operational system."
-                  : "Recommendation only — assignment requires BQL approval."}
+                  : sentBack
+                    ? "No assignment was created. Routing requires another review."
+                    : "Recommendation only — assignment requires BQL approval."}
               </p>
             </div>
           </Card>
@@ -522,15 +621,39 @@ export function IncidentIntelligencePage() {
                 <TraceabilityValue value="14:17" provenance="AI + rules" tone="ai" />
               </DetailRow>
               <DetailRow label="Last human decision">
-                <TraceabilityValue value="None recorded" provenance="Human decision" tone="human" />
+                <TraceabilityValue
+                  value={
+                    assigned
+                      ? (routingDecision.decisionReason ?? "BQL approved routing")
+                      : sentBack
+                        ? `Sent back: ${routingDecision.decisionReason}`
+                        : "None recorded"
+                  }
+                  provenance="Human decision"
+                  tone="human"
+                />
+              </DetailRow>
+              <DetailRow label="Routing recommendation">
+                <TraceabilityValue
+                  value={incident.recommendedTeam}
+                  provenance="AI-generated"
+                  tone="ai"
+                />
+              </DetailRow>
+              <DetailRow label="Required skill">
+                <TraceabilityValue value={category} provenance="System record" />
               </DetailRow>
               <DetailRow label="Current owner">
-                <TraceabilityValue value={incident.currentTeam} provenance="System record" />
+                <TraceabilityValue value={operationalTeam} provenance="System record" />
               </DetailRow>
             </div>
             <div className="mx-5 mb-5 flex items-center gap-2 rounded-lg bg-slate-50 p-3 text-xs font-medium text-slate-600">
               <FileCheck2 size={16} className="text-slate-500" />
-              Awaiting BQL approval
+              {assigned
+                ? "Assignment created from BQL-approved routing"
+                : sentBack
+                  ? "Routing review requested by BQL"
+                  : "Awaiting BQL approval"}
             </div>
           </Card>
         </aside>

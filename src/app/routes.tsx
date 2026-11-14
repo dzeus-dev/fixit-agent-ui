@@ -1,6 +1,7 @@
 import { createBrowserRouter } from "react-router";
 import { AppShell } from "./components";
 import { CorrelationReviewPage } from "./correlation-review";
+import { RoutingDecisionProvider } from "./routing-decision";
 import {
   ApprovalPage,
   BqlRedirect,
@@ -25,7 +26,11 @@ export const router = createBrowserRouter([
   { path: "/login", Component: LoginPage },
   {
     path: "/bql",
-    Component: () => <AppShell role="bql" />,
+    Component: () => (
+      <RoutingDecisionProvider>
+        <AppShell role="bql" />
+      </RoutingDecisionProvider>
+    ),
     children: [
       { index: true, Component: BqlRedirect },
       { path: "dashboard", Component: DashboardPage },
