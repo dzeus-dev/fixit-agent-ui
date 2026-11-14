@@ -205,131 +205,418 @@ export function LoginPage() {
   );
 }
 
-function MetricCard({
-  label,
+type SlaState = "On track" | "At risk" | "Breached";
+
+interface DashboardIncident {
+  id: string;
+  title: string;
+  location: string;
+  priority: "Critical" | "High" | "Medium";
+  status: "Pending Approval" | "Assigned" | "In Progress";
+  tickets: number;
+  team: string;
+  slaState: SlaState;
+  slaDetail: string;
+  nextAction: string;
+  actionLabel: string;
+  actionRoute: string;
+  approvalReason?: string;
+}
+
+const dashboardIncidents: DashboardIncident[] = [
+  {
+    id: "INC-024",
+    title: "Water leak affecting multiple units",
+    location: "Tower A · Floor 12",
+    priority: "Critical",
+    status: "Pending Approval",
+    tickets: 3,
+    team: "Technical — Plumbing",
+    slaState: "At risk",
+    slaDetail: "1h 42m remaining",
+    nextAction: "Review the recommended plumbing assignment",
+    actionLabel: "Review approval",
+    actionRoute: "/bql/incidents/INC-024/approval",
+    approvalReason: "Multiple units affected and active water leakage",
+  },
+  {
+    id: "INC-025",
+    title: "Elevator failure",
+    location: "Tower B · Main elevator",
+    priority: "Critical",
+    status: "Assigned",
+    tickets: 2,
+    team: "Vertical Transport",
+    slaState: "Breached",
+    slaDetail: "12m over target",
+    nextAction: "Confirm response progress with the assigned team",
+    actionLabel: "Review incident",
+    actionRoute: "/bql/incidents/INC-025",
+  },
+  {
+    id: "INC-026",
+    title: "Electrical issue in common area",
+    location: "Tower A · Floor 8",
+    priority: "High",
+    status: "In Progress",
+    tickets: 2,
+    team: "Technical — Electrical",
+    slaState: "At risk",
+    slaDetail: "54m remaining",
+    nextAction: "Review progress before the SLA enters breach",
+    actionLabel: "Open incident",
+    actionRoute: "/bql/incidents/INC-026",
+  },
+  {
+    id: "INC-027",
+    title: "HVAC temperature alert",
+    location: "Tower C · Floor 6",
+    priority: "Medium",
+    status: "Pending Approval",
+    tickets: 4,
+    team: "Technical — HVAC",
+    slaState: "On track",
+    slaDetail: "5h 08m remaining",
+    nextAction: "Review the recommended HVAC assignment",
+    actionLabel: "Review routing",
+    actionRoute: "/bql/incidents/INC-027/routing",
+    approvalReason: "Four reports indicate a shared floor-level HVAC issue",
+  },
+];
+
+const pendingApprovalIncidents = [dashboardIncidents[0], dashboardIncidents[3]];
+const attentionIncidents = [dashboardIncidents[0], dashboardIncidents[1], dashboardIncidents[3]];
+
+function AttentionMetricCard({
   value,
-  tone,
+  label,
   detail,
+  tone,
+  onClick,
 }: {
-  label: string;
   value: string;
-  tone: string;
+  label: string;
   detail: string;
+  tone: "critical" | "approval" | "risk" | "open";
+  onClick: () => void;
+}) {
+  const styles = {
+    critical: { dot: "bg-red-500", value: "text-red-700", hover: "hover:border-red-200" },
+    approval: { dot: "bg-violet-500", value: "text-violet-700", hover: "hover:border-violet-200" },
+    risk: { dot: "bg-orange-500", value: "text-orange-700", hover: "hover:border-orange-200" },
+    open: { dot: "bg-indigo-500", value: "text-indigo-700", hover: "hover:border-indigo-200" },
+  }[tone];
+
+  return (
+    <button
+      className={`rounded-xl border border-slate-200 bg-white p-5 text-left shadow-[0_1px_2px_rgba(15,23,42,0.03)] transition hover:-translate-y-0.5 hover:shadow-md ${styles.hover}`}
+      onClick={onClick}
+    >
+      <div className="flex items-center justify-between">
+        <span className={`size-2.5 rounded-full ${styles.dot}`} />
+        <ArrowRight size={15} className="text-slate-300" />
+      </div>
+      <p className={`mt-4 text-3xl font-bold tracking-[-0.04em] ${styles.value}`}>{value}</p>
+      <p className="mt-1 text-sm font-bold text-slate-900">{label}</p>
+      <p className="mt-1 text-xs text-slate-500">{detail}</p>
+    </button>
+  );
+}
+
+function SlaBadge({ state }: { state: SlaState }) {
+  const styles = {
+    "On track": "bg-emerald-50 text-emerald-700 ring-emerald-600/15",
+    "At risk": "bg-orange-50 text-orange-700 ring-orange-600/15",
+    Breached: "bg-red-50 text-red-700 ring-red-600/15",
+  }[state];
+  return (
+    <span
+      className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset ${styles}`}
+    >
+      <Clock3 size={12} className="mr-1.5" />
+      {state}
+    </span>
+  );
+}
+
+function AttentionRow({
+  item,
+  navigate,
+}: {
+  item: DashboardIncident;
+  navigate: ReturnType<typeof useNavigate>;
 }) {
   return (
-    <Card className="p-5">
-      <div className="flex items-center justify-between">
-        <p className="text-sm font-medium text-slate-500">{label}</p>
-        <span className={`size-2 rounded-full ${tone}`} />
+    <div className="grid gap-4 px-5 py-5 hover:bg-slate-50/70 lg:grid-cols-[minmax(0,1.25fr)_auto_minmax(210px,.8fr)_auto] lg:items-center">
+      <div className="flex min-w-0 gap-3">
+        <span
+          className={`mt-1 h-10 w-1 shrink-0 rounded-full ${
+            item.priority === "Critical" ? "bg-red-500" : "bg-orange-500"
+          }`}
+        />
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <Link
+              to={`/bql/incidents/${item.id}`}
+              className="font-mono text-xs font-bold text-indigo-600 hover:underline"
+            >
+              {item.id}
+            </Link>
+            <PriorityBadge priority={item.priority} />
+            <StatusBadge status={item.status} />
+          </div>
+          <Link
+            to={`/bql/incidents/${item.id}`}
+            className="mt-1.5 block truncate text-sm font-bold text-slate-950 hover:text-indigo-700"
+          >
+            {item.title}
+          </Link>
+          <p className="mt-1 flex items-center gap-1.5 text-xs text-slate-500">
+            <MapPin size={12} /> {item.location}
+          </p>
+        </div>
       </div>
-      <p className="mt-4 text-3xl font-bold tracking-[-0.04em] text-slate-950">{value}</p>
-      <p className="mt-1 text-xs text-slate-400">{detail}</p>
-    </Card>
+      <div className="flex items-center gap-4 lg:block lg:min-w-24">
+        <SlaBadge state={item.slaState} />
+        <p className="mt-1.5 text-xs font-medium text-slate-500">{item.slaDetail}</p>
+        <p className="mt-1 text-xs text-slate-500">
+          <Ticket size={12} className="mr-1 inline" />
+          {item.tickets} related {item.tickets === 1 ? "report" : "reports"}
+        </p>
+      </div>
+      <div className="rounded-lg border border-indigo-100 bg-indigo-50/50 px-3.5 py-3">
+        <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-indigo-600">
+          Recommended next action
+        </p>
+        <p className="mt-1.5 text-xs font-semibold leading-5 text-slate-800">{item.nextAction}</p>
+      </div>
+      <Button onClick={() => navigate(item.actionRoute)} className="whitespace-nowrap">
+        {item.actionLabel}
+      </Button>
+    </div>
   );
 }
 
 export function DashboardPage() {
   const navigate = useNavigate();
+  const queueRoute = "/bql/incidents";
+
   return (
     <>
       <PageHeader
-        title="Good morning, Aisha"
-        description="Here’s the operational picture across Sunrise Residence."
+        eyebrow="Sunrise Residence"
+        title="BQL Operations"
+        description="Monitor incidents, approvals and SLA risk across the property."
         actions={
-          <Button onClick={() => navigate("/bql/incidents")}>
+          <Button onClick={() => navigate(queueRoute)}>
             Review incident queue <ArrowRight size={16} />
           </Button>
         }
       />
-      <section>
+
+      <section aria-labelledby="attention-summary">
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-xs font-bold uppercase tracking-[0.1em] text-slate-500">
-            Operational summary
+          <h2
+            id="attention-summary"
+            className="text-xs font-bold uppercase tracking-[0.1em] text-slate-500"
+          >
+            Attention summary
           </h2>
           <span className="text-xs text-slate-400">Updated just now</span>
         </div>
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
-          <MetricCard label="Open" value="18" tone="bg-sky-500" detail="4 new today" />
-          <MetricCard label="Critical" value="3" tone="bg-red-500" detail="1 needs attention" />
-          <MetricCard
-            label="Pending Approval"
-            value="5"
-            tone="bg-violet-500"
-            detail="Oldest: 36 min"
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <AttentionMetricCard
+            value="2"
+            label="Critical incidents"
+            detail="Require immediate attention"
+            tone="critical"
+            onClick={() => navigate(queueRoute)}
           />
-          <MetricCard label="At Risk" value="4" tone="bg-orange-500" detail="Within 2h of SLA" />
-          <MetricCard label="Resolved" value="27" tone="bg-emerald-500" detail="This week" />
+          <AttentionMetricCard
+            value="3"
+            label="Pending approval"
+            detail="Human decision required"
+            tone="approval"
+            onClick={() => navigate(queueRoute)}
+          />
+          <AttentionMetricCard
+            value="4"
+            label="SLA at risk"
+            detail="Needs action soon"
+            tone="risk"
+            onClick={() => navigate(queueRoute)}
+          />
+          <AttentionMetricCard
+            value="12"
+            label="Open incidents"
+            detail="Currently being handled"
+            tone="open"
+            onClick={() => navigate(queueRoute)}
+          />
         </div>
       </section>
-      <div className="mt-7 grid gap-6 xl:grid-cols-[1.1fr_.9fr]">
-        <Card>
-          <SectionHeading title="Recent incidents" meta="Incident-level operations" />
-          <div className="divide-y divide-slate-100">
-            {incidents.slice(0, 4).map((incident) => (
-              <Link
-                key={incident.id}
-                to={`/bql/incidents/${incident.id}`}
-                className="group flex items-center gap-4 px-5 py-4 hover:bg-slate-50/80"
-              >
-                <IncidentMark />
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-indigo-600">{incident.id}</span>
-                    <StatusBadge status={incident.status} />
-                  </div>
-                  <p className="mt-1 truncate text-sm font-semibold text-slate-900">
-                    {incident.title}{" "}
-                    <span className="font-normal text-slate-400">· {incident.location}</span>
-                  </p>
-                </div>
-                <div className="hidden text-right sm:block">
-                  <p className="text-sm font-semibold text-slate-700">{incident.tickets} tickets</p>
-                  <p className="mt-1 text-xs text-slate-400">{incident.sla}</p>
-                </div>
-                <ChevronRight size={17} className="text-slate-300 group-hover:text-indigo-600" />
-              </Link>
-            ))}
+
+      <Card className="mt-6 overflow-hidden border-slate-300">
+        <div className="flex flex-wrap items-start justify-between gap-3 border-b border-slate-200 bg-slate-50/70 px-5 py-4">
+          <div>
+            <div className="flex items-center gap-2">
+              <AlertTriangle size={18} className="text-orange-600" />
+              <h2 className="text-base font-bold text-slate-950">Needs Attention Now</h2>
+            </div>
+            <p className="mt-1 text-xs text-slate-500">
+              Highest-priority incidents, ordered by operational urgency.
+            </p>
           </div>
-          <Link
-            className="block border-t border-slate-100 px-5 py-3.5 text-center text-sm font-semibold text-indigo-600 hover:bg-slate-50"
-            to="/bql/incidents"
-          >
-            View all incidents
-          </Link>
-        </Card>
-        <Card>
-          <SectionHeading title="Recent resident tickets" meta="Individual reports" />
+          <span className="rounded-full bg-orange-50 px-3 py-1 text-xs font-bold text-orange-700 ring-1 ring-inset ring-orange-600/15">
+            3 actions due
+          </span>
+        </div>
+        <div className="divide-y divide-slate-100">
+          {attentionIncidents.map((item) => (
+            <AttentionRow key={item.id} item={item} navigate={navigate} />
+          ))}
+        </div>
+      </Card>
+
+      <div className="mt-6 grid gap-6 xl:grid-cols-3">
+        <Card className="overflow-hidden">
+          <SectionHeading title="Critical Incidents" meta="Immediate attention" />
           <div className="divide-y divide-slate-100">
-            {tickets.slice(0, 4).map((ticket) => (
-              <div key={ticket.id} className="flex items-center gap-3 px-5 py-4">
-                <TicketMark />
-                <div className="min-w-0 flex-1">
-                  <p className="text-xs font-bold text-slate-500">{ticket.id}</p>
-                  <p className="mt-1 truncate text-sm font-semibold text-slate-800">
-                    {ticket.issue}
-                  </p>
+            {dashboardIncidents.slice(0, 2).map((item) => (
+              <div key={item.id} className="p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <Link
+                      to={`/bql/incidents/${item.id}`}
+                      className="font-mono text-xs font-bold text-indigo-600 hover:underline"
+                    >
+                      {item.id}
+                    </Link>
+                    <p className="mt-1 truncate text-sm font-bold text-slate-900">{item.title}</p>
+                    <p className="mt-1 text-xs text-slate-500">{item.location}</p>
+                  </div>
+                  <PriorityBadge priority={item.priority} />
                 </div>
-                {ticket.incident ? (
-                  <Link
-                    to={`/bql/incidents/${ticket.incident}`}
-                    className="text-xs font-semibold text-indigo-600 hover:underline"
-                  >
-                    {ticket.incident}
-                  </Link>
-                ) : (
-                  <span className="text-xs text-slate-400">Unlinked</span>
-                )}
+                <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+                  <StatusBadge status={item.status} />
+                  <span>·</span>
+                  <span>{item.tickets} reports</span>
+                  <span>·</span>
+                  <span className="font-medium text-slate-700">{item.team}</span>
+                </div>
+                <Button
+                  className="mt-3 w-full"
+                  variant="secondary"
+                  onClick={() => navigate(`/bql/incidents/${item.id}`)}
+                >
+                  Review
+                </Button>
               </div>
             ))}
           </div>
-          <Link
-            className="block border-t border-slate-100 px-5 py-3.5 text-center text-sm font-semibold text-indigo-600 hover:bg-slate-50"
-            to="/bql/tickets"
-          >
-            View ticket queue
-          </Link>
+        </Card>
+
+        <Card className="overflow-hidden border-violet-200">
+          <SectionHeading title="Pending Human Approval" meta="BQL decision required" />
+          <div className="border-b border-violet-100 bg-violet-50/60 px-4 py-3">
+            <p className="flex items-center gap-2 text-xs font-semibold text-violet-800">
+              <BrainCircuit size={15} />
+              AI recommends → System verifies → Human decides
+            </p>
+          </div>
+          <div className="divide-y divide-slate-100">
+            {pendingApprovalIncidents.map((item) => (
+              <div key={item.id} className="p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="font-mono text-xs font-bold text-indigo-600">{item.id}</p>
+                    <p className="mt-1 text-sm font-bold text-slate-900">{item.title}</p>
+                  </div>
+                  <PriorityBadge priority={item.priority} />
+                </div>
+                <div className="mt-3 rounded-lg bg-slate-50 px-3 py-2.5">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.09em] text-indigo-600">
+                    AI recommendation
+                  </p>
+                  <p className="mt-1 text-xs font-bold text-slate-800">{item.team}</p>
+                  <p className="mt-1 text-xs leading-5 text-slate-500">{item.approvalReason}</p>
+                </div>
+                <Button
+                  className="mt-3 w-full"
+                  onClick={() => navigate(`/bql/incidents/${item.id}/approval`)}
+                >
+                  Review approval
+                </Button>
+              </div>
+            ))}
+          </div>
+        </Card>
+
+        <Card className="overflow-hidden">
+          <SectionHeading title="SLA Risk" meta="Mock operational clock" />
+          <div className="divide-y divide-slate-100">
+            {dashboardIncidents
+              .filter((item) => item.slaState !== "On track")
+              .map((item) => (
+                <div key={item.id} className="p-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <Link
+                        to={`/bql/incidents/${item.id}`}
+                        className="font-mono text-xs font-bold text-indigo-600 hover:underline"
+                      >
+                        {item.id}
+                      </Link>
+                      <p className="mt-1 text-sm font-semibold text-slate-900">{item.title}</p>
+                    </div>
+                    <SlaBadge state={item.slaState} />
+                  </div>
+                  <div className="mt-3 flex items-center justify-between text-xs">
+                    <span className="font-semibold text-slate-700">{item.slaDetail}</span>
+                    <span className="text-slate-500">{item.team}</span>
+                  </div>
+                  <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-100">
+                    <div
+                      className={`h-full rounded-full ${
+                        item.slaState === "Breached" ? "w-full bg-red-500" : "w-4/5 bg-orange-500"
+                      }`}
+                    />
+                  </div>
+                  <button
+                    className="mt-3 text-xs font-bold text-indigo-600 hover:text-indigo-800"
+                    onClick={() => navigate(`/bql/incidents/${item.id}`)}
+                  >
+                    Open incident <ArrowRight size={13} className="ml-1 inline" />
+                  </button>
+                </div>
+              ))}
+          </div>
         </Card>
       </div>
+
+      <Card className="mt-6 overflow-hidden">
+        <SectionHeading title="Recent activity" meta="Incident updates" />
+        <div className="grid divide-y divide-slate-100 md:grid-cols-3 md:divide-x md:divide-y-0">
+          {[
+            ["INC-026", "Electrical team started work", "8 min ago"],
+            ["INC-024", "Plumbing assignment recommended", "18 min ago"],
+            ["INC-025", "SLA entered breach", "24 min ago"],
+          ].map(([id, activity, time]) => (
+            <Link
+              key={id}
+              to={`/bql/incidents/${id}`}
+              className="flex items-start gap-3 p-4 hover:bg-slate-50"
+            >
+              <IncidentMark />
+              <div>
+                <p className="text-xs font-bold text-indigo-600">{id}</p>
+                <p className="mt-1 text-sm font-semibold text-slate-800">{activity}</p>
+                <p className="mt-1 text-xs text-slate-400">{time}</p>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </Card>
     </>
   );
 }
@@ -641,7 +928,8 @@ export function RoutingPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const incident = getIncident(id);
-  const [selectedTeam, setSelectedTeam] = useState("Technical — Plumbing");
+  const initialTeam = incident.team === "Unassigned" ? "Technical — Plumbing" : incident.team;
+  const [selectedTeam, setSelectedTeam] = useState(initialTeam);
   const [changing, setChanging] = useState(false);
   const [approved, setApproved] = useState(false);
   const teamOptions = ["Technical — Plumbing", "Technical — Electrical", "Cleaning", "Security"];
@@ -698,7 +986,7 @@ export function RoutingPage() {
           <div className="grid gap-3 p-5 sm:grid-cols-3">
             {[
               ["Required skill", selectedSkill],
-              ["Location", "Tower A"],
+              ["Location", incident.location.split(" / ")[0]],
               ["Current workload", "Moderate"],
             ].map(([label, value]) => (
               <div key={label} className="rounded-lg border border-slate-200 p-4">
@@ -869,11 +1157,11 @@ export function ApprovalPage() {
                 AI recommendation
               </p>
               <p className="mt-2 text-sm font-semibold text-slate-900">
-                Correlate 3 reports and route to Technical — Plumbing.
+                Correlate {incident.tickets} reports and route to {incident.team}.
               </p>
               <p className="mt-2 text-sm leading-6 text-slate-500">
-                Evidence: shared issue category, same floor, and reports submitted within a
-                24-minute window.
+                Evidence: shared issue category, nearby locations, and reports submitted within a
+                similar time window.
               </p>
             </div>
             <div className="mt-4">
