@@ -1,0 +1,10 @@
+{
+  "description": "An incident orchestration workspace for residential property teams to organize resident reports, track incidents, and coordinate dispatchers, technicians, and residents.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
