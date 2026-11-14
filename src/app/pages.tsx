@@ -40,6 +40,7 @@ import {
   TicketMark,
 } from "./components";
 import { incidents, tasks, tickets, type Incident, type Ticket as TicketType } from "./data";
+import { IncidentIntelligencePage } from "./incident-detail";
 
 export function EntryPage() {
   const roles = [
@@ -230,7 +231,7 @@ const dashboardIncidents: DashboardIncident[] = [
     location: "Tower A · Floor 12",
     priority: "Critical",
     status: "Pending Approval",
-    tickets: 3,
+    tickets: 6,
     team: "Technical — Plumbing",
     slaState: "At risk",
     slaDetail: "1h 42m remaining",
@@ -786,142 +787,7 @@ function getIncident(id?: string) {
 }
 
 export function IncidentDetailPage() {
-  const { id } = useParams();
-  const navigate = useNavigate();
-  const incident = getIncident(id);
-  const related =
-    incident.id === "INC-024"
-      ? tickets.slice(0, 3)
-      : tickets.filter((ticket) => ticket.incident === incident.id);
-  return (
-    <>
-      <Link
-        to="/bql/incidents"
-        className="mb-4 inline-flex items-center gap-2 text-sm font-semibold text-slate-500 hover:text-slate-900"
-      >
-        <ArrowLeft size={16} /> Back to incidents
-      </Link>
-      <PageHeader
-        eyebrow={`Incident · ${incident.id}`}
-        title={incident.title}
-        description={incident.location}
-        actions={
-          <>
-            <Button
-              variant="secondary"
-              onClick={() => navigate(`/bql/incidents/${incident.id}/routing`)}
-            >
-              Change
-            </Button>
-            <Button onClick={() => navigate(`/bql/incidents/${incident.id}/approval`)}>
-              Review approval
-            </Button>
-          </>
-        }
-      />
-      <div className="mb-6 flex flex-wrap items-center gap-3 rounded-xl border border-indigo-200 bg-white px-5 py-4 shadow-sm">
-        <IncidentMark />
-        <div className="mr-auto">
-          <p className="text-xs font-semibold text-slate-400">Operational incident</p>
-          <p className="text-sm font-bold text-slate-900">
-            {incident.tickets} resident reports correlated
-          </p>
-        </div>
-        <PriorityBadge priority={incident.priority} />
-        <StatusBadge status={incident.status} />
-      </div>
-      <div className="grid gap-6 xl:grid-cols-[1.15fr_.85fr]">
-        <div className="space-y-6">
-          <Card>
-            <SectionHeading title="Related tickets" meta={`${related.length} individual reports`} />
-            <div className="divide-y divide-slate-100">
-              {related.map((ticket) => (
-                <div key={ticket.id} className="flex items-center gap-4 px-5 py-4">
-                  <TicketMark />
-                  <div className="min-w-0 flex-1">
-                    <p className="text-xs font-bold text-slate-500">{ticket.id}</p>
-                    <p className="mt-1 truncate text-sm font-semibold text-slate-900">
-                      {ticket.issue}
-                    </p>
-                  </div>
-                  <span className="hidden text-sm text-slate-500 sm:block">{ticket.location}</span>
-                  <PriorityBadge priority={ticket.priority} />
-                </div>
-              ))}
-            </div>
-          </Card>
-          <Card accent>
-            <SectionHeading title="AI Recommendation" meta="Assistive · Requires review" />
-            <div className="p-5">
-              <div className="flex items-start gap-4">
-                <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-indigo-50 text-indigo-600">
-                  <BrainCircuit size={20} />
-                </span>
-                <div>
-                  <p className="font-semibold text-slate-900">
-                    These {related.length || incident.tickets} tickets appear potentially related.
-                  </p>
-                  <p className="mt-2 text-sm leading-6 text-slate-500">
-                    Shared location, issue category, and reporting window suggest a common
-                    operational cause. Confirm the relationship before proceeding.
-                  </p>
-                </div>
-              </div>
-              <div className="mt-5 rounded-lg bg-slate-50 p-4">
-                <p className="text-xs font-bold uppercase tracking-[0.08em] text-slate-400">
-                  Recommended action
-                </p>
-                <p className="mt-2 text-sm font-semibold text-slate-800">
-                  Review related tickets and create incident.
-                </p>
-              </div>
-            </div>
-          </Card>
-        </div>
-        <div className="space-y-6">
-          <Card>
-            <SectionHeading title="Incident overview" />
-            <dl className="px-5">
-              <DetailRow label="Incident ID">{incident.id}</DetailRow>
-              <DetailRow label="Priority">
-                <PriorityBadge priority={incident.priority} />
-              </DetailRow>
-              <DetailRow label="Status">
-                <StatusBadge status={incident.status} />
-              </DetailRow>
-              <DetailRow label="Location">{incident.location}</DetailRow>
-              <DetailRow label="Assigned team">{incident.team}</DetailRow>
-            </dl>
-          </Card>
-          <Card>
-            <SectionHeading title="Actions" />
-            <div className="space-y-2 p-4">
-              <Button
-                className="w-full justify-between"
-                variant="secondary"
-                onClick={() => navigate(`/bql/incidents/${incident.id}/routing`)}
-              >
-                Review routing <Route size={16} />
-              </Button>
-              <Button
-                className="w-full justify-between"
-                onClick={() => navigate(`/bql/incidents/${incident.id}/approval`)}
-              >
-                Approve recommendation <ArrowRight size={16} />
-              </Button>
-              <Button
-                className="w-full"
-                variant="ghost"
-                onClick={() => navigate(`/bql/incidents/${incident.id}/routing`)}
-              >
-                Change recommendation
-              </Button>
-            </div>
-          </Card>
-        </div>
-      </div>
-    </>
-  );
+  return <IncidentIntelligencePage />;
 }
 
 export function RoutingPage() {
