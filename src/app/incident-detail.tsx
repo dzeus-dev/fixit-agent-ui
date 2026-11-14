@@ -324,15 +324,21 @@ export function IncidentIntelligencePage() {
               title="Related Reports"
               meta={`${related.length} supporting resident tickets`}
             />
-            <div className="flex items-start gap-3 border-b border-indigo-100 bg-indigo-50/50 px-5 py-4">
+            <div className="flex flex-col gap-3 border-b border-indigo-100 bg-indigo-50/50 px-5 py-4 sm:flex-row sm:items-start">
               <BrainCircuit size={17} className="mt-0.5 shrink-0 text-indigo-600" />
-              <div>
+              <div className="flex-1">
                 <p className="text-xs font-bold text-indigo-900">Why these reports are related</p>
                 <p className="mt-1 text-xs leading-5 text-indigo-700">
                   Similar issue type, nearby locations, and close reporting times suggest a shared
                   operational cause. This relationship remains reviewable by BQL.
                 </p>
               </div>
+              <Button
+                variant="secondary"
+                onClick={() => navigate(`/bql/incidents/${incident.id}/correlation`)}
+              >
+                Review correlation <ArrowRight size={15} />
+              </Button>
             </div>
             <div className="divide-y divide-slate-100">
               {related.map((ticket) => (

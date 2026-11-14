@@ -38,6 +38,7 @@ const titles: Record<string, string> = {
 };
 
 function getPageTitle(pathname: string) {
+  if (pathname.endsWith("/correlation")) return "Correlation Review";
   if (pathname.endsWith("/routing")) return "Routing Recommendation";
   if (pathname.endsWith("/approval")) return "Approval Review";
   if (/\/bql\/incidents\/[^/]+$/.test(pathname)) return "Incident Detail";

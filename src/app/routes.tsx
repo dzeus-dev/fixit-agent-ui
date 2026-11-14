@@ -1,5 +1,6 @@
 import { createBrowserRouter } from "react-router";
 import { AppShell } from "./components";
+import { CorrelationReviewPage } from "./correlation-review";
 import {
   ApprovalPage,
   BqlRedirect,
@@ -31,6 +32,7 @@ export const router = createBrowserRouter([
       { path: "tickets", Component: TicketsPage },
       { path: "incidents", Component: IncidentsPage },
       { path: "incidents/:id", Component: IncidentDetailPage },
+      { path: "incidents/:id/correlation", Component: CorrelationReviewPage },
       { path: "incidents/:id/routing", Component: RoutingPage },
       { path: "incidents/:id/approval", Component: ApprovalPage },
     ],
