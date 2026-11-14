@@ -229,13 +229,14 @@ function MetricCard({
 }
 
 export function DashboardPage() {
+  const navigate = useNavigate();
   return (
     <>
       <PageHeader
         title="Good morning, Aisha"
         description="Here’s the operational picture across Sunrise Residence."
         actions={
-          <Button>
+          <Button onClick={() => navigate("/bql/incidents")}>
             Review incident queue <ArrowRight size={16} />
           </Button>
         }
@@ -402,13 +403,18 @@ function TicketRow({ ticket }: { ticket: TicketType }) {
 }
 
 export function IncidentsPage() {
+  const navigate = useNavigate();
   return (
     <>
       <PageHeader
         eyebrow="Operational problems"
         title="Incidents"
         description="Prioritize, approve, and coordinate the operational response across related resident tickets."
-        actions={<Button>Review pending approvals</Button>}
+        actions={
+          <Button onClick={() => navigate("/bql/incidents/INC-024/approval")}>
+            Review pending approvals
+          </Button>
+        }
       />
       <div className="mb-4 flex items-center gap-2 rounded-lg border border-indigo-200 bg-indigo-50/60 px-4 py-3 text-sm text-indigo-800">
         <Gauge size={17} />
@@ -494,6 +500,7 @@ function getIncident(id?: string) {
 
 export function IncidentDetailPage() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const incident = getIncident(id);
   const related =
     incident.id === "INC-024"
@@ -513,12 +520,15 @@ export function IncidentDetailPage() {
         description={incident.location}
         actions={
           <>
-            <Button variant="secondary" onClick={() => {}}>
+            <Button
+              variant="secondary"
+              onClick={() => navigate(`/bql/incidents/${incident.id}/routing`)}
+            >
               Change
             </Button>
-            <Link to={`/bql/incidents/${incident.id}/approval`}>
-              <Button>Review approval</Button>
-            </Link>
+            <Button onClick={() => navigate(`/bql/incidents/${incident.id}/approval`)}>
+              Review approval
+            </Button>
           </>
         }
       />
@@ -599,17 +609,24 @@ export function IncidentDetailPage() {
           <Card>
             <SectionHeading title="Actions" />
             <div className="space-y-2 p-4">
-              <Link className="block" to={`/bql/incidents/${incident.id}/routing`}>
-                <Button className="w-full justify-between" variant="secondary">
-                  Review routing <Route size={16} />
-                </Button>
-              </Link>
-              <Link className="block" to={`/bql/incidents/${incident.id}/approval`}>
-                <Button className="w-full justify-between">
-                  Approve recommendation <ArrowRight size={16} />
-                </Button>
-              </Link>
-              <Button className="w-full" variant="ghost">
+              <Button
+                className="w-full justify-between"
+                variant="secondary"
+                onClick={() => navigate(`/bql/incidents/${incident.id}/routing`)}
+              >
+                Review routing <Route size={16} />
+              </Button>
+              <Button
+                className="w-full justify-between"
+                onClick={() => navigate(`/bql/incidents/${incident.id}/approval`)}
+              >
+                Approve recommendation <ArrowRight size={16} />
+              </Button>
+              <Button
+                className="w-full"
+                variant="ghost"
+                onClick={() => navigate(`/bql/incidents/${incident.id}/routing`)}
+              >
                 Change recommendation
               </Button>
             </div>
@@ -622,7 +639,21 @@ export function IncidentDetailPage() {
 
 export function RoutingPage() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const incident = getIncident(id);
+  const [selectedTeam, setSelectedTeam] = useState("Technical — Plumbing");
+  const [changing, setChanging] = useState(false);
+  const [approved, setApproved] = useState(false);
+  const teamOptions = ["Technical — Plumbing", "Technical — Electrical", "Cleaning", "Security"];
+  const selectedSkill = selectedTeam.startsWith("Technical — ")
+    ? selectedTeam.replace("Technical — ", "")
+    : selectedTeam;
+
+  function changeTeam(team: string) {
+    setSelectedTeam(team);
+    setApproved(false);
+  }
+
   return (
     <>
       <Link
@@ -648,21 +679,25 @@ export function RoutingPage() {
                   <p className="text-xs font-bold uppercase tracking-[0.1em] text-indigo-600">
                     Recommended team
                   </p>
-                  <h2 className="mt-1 text-xl font-bold text-slate-950">Technical — Plumbing</h2>
+                  <h2 className="mt-1 text-xl font-bold text-slate-950">{selectedTeam}</h2>
                   <p className="mt-1 text-sm text-slate-500">
                     Best match for this incident’s category and location.
                   </p>
                 </div>
               </div>
-              <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">
-                Strong match
+              <span
+                className={`rounded-full px-3 py-1 text-xs font-bold ${
+                  approved ? "bg-emerald-100 text-emerald-800" : "bg-emerald-50 text-emerald-700"
+                }`}
+              >
+                {approved ? "Approved" : "Strong match"}
               </span>
             </div>
           </div>
           <SectionHeading title="Matching signals" />
           <div className="grid gap-3 p-5 sm:grid-cols-3">
             {[
-              ["Required skill", "Plumbing"],
+              ["Required skill", selectedSkill],
               ["Location", "Tower A"],
               ["Current workload", "Moderate"],
             ].map(([label, value]) => (
@@ -677,13 +712,72 @@ export function RoutingPage() {
         <Card>
           <SectionHeading title="Decision" />
           <div className="p-5">
-            <p className="text-sm leading-6 text-slate-500">
-              Assignment remains pending until you confirm the recommendation.
-            </p>
-            <Button className="mt-5 w-full">Approve Assignment</Button>
-            <Button className="mt-2 w-full" variant="secondary">
-              Change
+            {approved ? (
+              <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4" role="status">
+                <CheckCircle2 size={20} className="text-emerald-700" />
+                <p className="mt-3 text-sm font-bold text-emerald-900">Assignment approved</p>
+                <p className="mt-1 text-sm text-emerald-800">{selectedTeam}</p>
+                <p className="mt-2 text-xs leading-5 text-emerald-700">
+                  The recommendation is confirmed in this prototype.
+                </p>
+              </div>
+            ) : (
+              <p className="text-sm leading-6 text-slate-500">
+                Assignment remains pending until you confirm the recommendation.
+              </p>
+            )}
+
+            {changing && (
+              <div className="mt-4 rounded-lg border border-slate-200 bg-slate-50 p-3">
+                <label className="form-label">
+                  Select a different team
+                  <select
+                    className="form-input"
+                    value={selectedTeam}
+                    onChange={(event) => changeTeam(event.target.value)}
+                  >
+                    {teamOptions.map((team) => (
+                      <option key={team}>{team}</option>
+                    ))}
+                  </select>
+                </label>
+                <Button
+                  className="mt-3 w-full"
+                  variant="secondary"
+                  onClick={() => setChanging(false)}
+                >
+                  Use selected team
+                </Button>
+              </div>
+            )}
+
+            {!approved && (
+              <Button
+                className="mt-5 w-full"
+                onClick={() => {
+                  setApproved(true);
+                  setChanging(false);
+                }}
+              >
+                Approve Assignment
+              </Button>
+            )}
+            <Button
+              className="mt-2 w-full"
+              variant="secondary"
+              onClick={() => setChanging((current) => !current)}
+            >
+              {changing ? "Cancel change" : "Change"}
             </Button>
+            {approved && (
+              <Button
+                className="mt-2 w-full"
+                variant="ghost"
+                onClick={() => navigate(`/bql/incidents/${incident.id}/approval`)}
+              >
+                Continue to approval <ArrowRight size={16} />
+              </Button>
+            )}
           </div>
         </Card>
       </div>
@@ -693,7 +787,9 @@ export function RoutingPage() {
 
 export function ApprovalPage() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const incident = getIncident(id);
+  const [decision, setDecision] = useState<"approved" | "rejected" | null>(null);
   return (
     <>
       <Link
@@ -720,6 +816,32 @@ export function ApprovalPage() {
           </div>
         </div>
       </div>
+      {decision && (
+        <div
+          className={`mb-6 flex items-start gap-3 rounded-xl border p-4 ${
+            decision === "approved"
+              ? "border-emerald-200 bg-emerald-50 text-emerald-900"
+              : "border-red-200 bg-red-50 text-red-900"
+          }`}
+          role="status"
+        >
+          {decision === "approved" ? (
+            <CheckCircle2 size={20} className="mt-0.5 shrink-0" />
+          ) : (
+            <XCircle size={20} className="mt-0.5 shrink-0" />
+          )}
+          <div>
+            <p className="text-sm font-bold">
+              {decision === "approved" ? "Assignment approved" : "Recommendation rejected"}
+            </p>
+            <p className="mt-1 text-sm opacity-80">
+              {decision === "approved"
+                ? "Decision recorded. The BQL operator confirmed the recommendation."
+                : "Decision recorded. The incident remains open for further review."}
+            </p>
+          </div>
+        </div>
+      )}
       <div className="grid gap-6 xl:grid-cols-[1fr_360px]">
         <Card>
           <SectionHeading title="Approval evidence" meta={incident.id} />
@@ -768,13 +890,26 @@ export function ApprovalPage() {
         <Card>
           <SectionHeading title="Your decision" />
           <div className="space-y-2 p-5">
-            <Button className="w-full" icon={<Check size={16} />}>
+            <Button
+              className="w-full"
+              icon={<Check size={16} />}
+              onClick={() => setDecision("approved")}
+            >
               Approve
             </Button>
-            <Button className="w-full" variant="secondary">
+            <Button
+              className="w-full"
+              variant="secondary"
+              onClick={() => navigate(`/bql/incidents/${incident.id}/routing`)}
+            >
               Change
             </Button>
-            <Button className="w-full" variant="danger" icon={<XCircle size={16} />}>
+            <Button
+              className="w-full"
+              variant="danger"
+              icon={<XCircle size={16} />}
+              onClick={() => setDecision("rejected")}
+            >
               Reject
             </Button>
             <p className="pt-3 text-center text-xs leading-5 text-slate-400">
@@ -845,6 +980,7 @@ function TaskGroup({
 export function TaskDetailPage() {
   const { id } = useParams();
   const task = tasks.find((item) => item.id === id) ?? tasks[0];
+  const [taskStatus, setTaskStatus] = useState(task.status);
   return (
     <>
       <Link
@@ -857,7 +993,7 @@ export function TaskDetailPage() {
         eyebrow={`Task · ${task.id}`}
         title={task.incident}
         description={task.location}
-        actions={<StatusBadge status={task.status} />}
+        actions={<StatusBadge status={taskStatus} />}
       />
       <div className="grid gap-6 xl:grid-cols-[1fr_380px]">
         <div className="space-y-6">
@@ -899,8 +1035,32 @@ export function TaskDetailPage() {
         <Card className="h-fit">
           <SectionHeading title="Update task" />
           <div className="space-y-3 p-5">
-            <Button className="w-full">Start Work</Button>
-            <Button className="w-full" variant="secondary" icon={<CheckCircle2 size={16} />}>
+            {taskStatus === "Resolved" && (
+              <div
+                className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 p-4"
+                role="status"
+              >
+                <CheckCircle2 size={19} className="text-emerald-700" />
+                <p className="mt-2 text-sm font-bold text-emerald-900">Task resolved</p>
+                <p className="mt-1 text-xs leading-5 text-emerald-700">
+                  The mock task status has been updated.
+                </p>
+              </div>
+            )}
+            <Button
+              className="w-full"
+              disabled={taskStatus !== "Assigned"}
+              onClick={() => setTaskStatus("In Progress")}
+            >
+              {taskStatus === "Assigned" ? "Start Work" : "Work Started"}
+            </Button>
+            <Button
+              className="w-full"
+              variant="secondary"
+              icon={<CheckCircle2 size={16} />}
+              disabled={taskStatus !== "In Progress"}
+              onClick={() => setTaskStatus("Resolved")}
+            >
               Mark Resolved
             </Button>
           </div>
