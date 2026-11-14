@@ -1,5 +1,6 @@
 import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
 import type { ResidentStatus, ResidentTicketView } from "./data";
+import { useOperationalState } from "./operational-state";
 
 interface SubmitReportInput {
   issue: string;
@@ -81,11 +82,28 @@ const statusTimelines: Partial<Record<ResidentStatus, ResidentTicketView["timeli
 const ResidentStateContext = createContext<ResidentStateContextValue | null>(null);
 
 export function ResidentStateProvider({ children }: { children: ReactNode }) {
+  const {
+    state: operationalState,
+    setResidentStatus: setOperationalResidentStatus,
+    submitResidentFeedback,
+  } = useOperationalState();
   const [ticket, setTicket] = useState<ResidentTicketView>(initialTicket);
 
-  const value = useMemo<ResidentStateContextValue>(
-    () => ({
-      ticket,
+  const value = useMemo<ResidentStateContextValue>(() => {
+    const effectiveTicket: ResidentTicketView = {
+      ...ticket,
+      residentStatus: operationalState.residentStatus,
+      timeline:
+        ticket.feedback === "Still happening"
+          ? ticket.timeline
+          : (statusTimelines[operationalState.residentStatus] ?? ticket.timeline),
+      resolutionSummary:
+        operationalState.residentStatus === "Issue resolved"
+          ? "Water leakage was addressed by the maintenance team."
+          : ticket.resolutionSummary,
+    };
+    return {
+      ticket: effectiveTicket,
       submitReport(input) {
         setTicket((current) => ({
           ...current,
@@ -94,6 +112,7 @@ export function ResidentStateProvider({ children }: { children: ReactNode }) {
           timeline: statusTimelines["Being reviewed"] ?? current.timeline,
           feedback: undefined,
         }));
+        setOperationalResidentStatus("Being reviewed");
       },
       answerClarification(answer) {
         setTicket((current) => ({
@@ -106,6 +125,7 @@ export function ResidentStateProvider({ children }: { children: ReactNode }) {
             { label: "Your report is being reviewed", timestamp: "Just now" },
           ],
         }));
+        setOperationalResidentStatus("Being reviewed");
       },
       setResidentStatus(status) {
         setTicket((current) => ({
@@ -118,6 +138,7 @@ export function ResidentStateProvider({ children }: { children: ReactNode }) {
               : current.resolutionSummary,
           feedback: status === "Issue resolved" ? undefined : current.feedback,
         }));
+        setOperationalResidentStatus(status);
       },
       submitFeedback(feedback) {
         setTicket((current) => ({
@@ -137,10 +158,15 @@ export function ResidentStateProvider({ children }: { children: ReactNode }) {
                 ]
               : current.timeline,
         }));
+        submitResidentFeedback(feedback);
       },
-    }),
-    [ticket],
-  );
+    };
+  }, [
+    operationalState.residentStatus,
+    setOperationalResidentStatus,
+    submitResidentFeedback,
+    ticket,
+  ]);
 
   return <ResidentStateContext.Provider value={value}>{children}</ResidentStateContext.Provider>;
 }

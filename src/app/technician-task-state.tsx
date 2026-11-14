@@ -5,6 +5,7 @@ import {
   type ResolutionStatus,
   type TechnicianTask,
 } from "./data";
+import { useOperationalState } from "./operational-state";
 
 export interface ResolutionInput {
   resolutionStatus: ResolutionStatus;
@@ -23,7 +24,28 @@ interface TechnicianTaskContextValue {
 const TechnicianTaskContext = createContext<TechnicianTaskContextValue | null>(null);
 
 export function TechnicianTaskProvider({ children }: { children: ReactNode }) {
-  const [tasks, setTasks] = useState<TechnicianTask[]>(initialTasks);
+  const {
+    state: operationalState,
+    startTask: startOperationalTask,
+    recordTechnicianResolution,
+  } = useOperationalState();
+  const [tasks, setTasks] = useState<TechnicianTask[]>(() =>
+    initialTasks.map((task) =>
+      task.id === "TASK-102"
+        ? {
+            ...task,
+            status: operationalState.taskStatus,
+            assignedTeam: operationalState.assignedTeam ?? task.assignedTeam,
+            resolutionStatus: operationalState.resolution?.resolutionStatus,
+            resolutionNote: operationalState.resolution?.resolutionNote,
+            finding: operationalState.resolution?.finding,
+            affectedAreaConfirmed: operationalState.resolution?.affectedAreaConfirmed,
+            escalationReason: operationalState.resolution?.escalationReason,
+            resolvedAt: operationalState.resolution?.recordedAt,
+          }
+        : task,
+    ),
+  );
 
   const value = useMemo<TechnicianTaskContextValue>(
     () => ({
@@ -40,6 +62,7 @@ export function TechnicianTaskProvider({ children }: { children: ReactNode }) {
               : task,
           ),
         );
+        if (taskId === "TASK-102") startOperationalTask();
       },
       recordResolution(taskId, input) {
         setTasks((current) =>
@@ -54,9 +77,10 @@ export function TechnicianTaskProvider({ children }: { children: ReactNode }) {
               : task,
           ),
         );
+        if (taskId === "TASK-102") recordTechnicianResolution(input);
       },
     }),
-    [tasks],
+    [recordTechnicianResolution, startOperationalTask, tasks],
   );
 
   return <TechnicianTaskContext.Provider value={value}>{children}</TechnicianTaskContext.Provider>;

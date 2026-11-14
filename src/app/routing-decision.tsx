@@ -1,5 +1,6 @@
 import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
 import { incidents } from "./data";
+import { useOperationalState } from "./operational-state";
 
 export type RoutingDecisionStatus = "Pending Approval" | "Approved" | "Changed" | "Sent Back";
 
@@ -22,23 +23,41 @@ interface RoutingDecisionContextValue {
   sendBack: (incidentId: string, reason: string) => void;
 }
 
-const initialDecisions = Object.fromEntries(
-  incidents.map((incident) => [
-    incident.id,
-    {
-      incidentId: incident.id,
-      recommendedTeam: incident.recommendedTeam,
-      currentTeam: incident.currentTeam,
-      selectedTeam: incident.recommendedTeam,
-      status: "Pending Approval" as RoutingDecisionStatus,
-    },
-  ]),
-);
-
 const RoutingDecisionContext = createContext<RoutingDecisionContextValue | null>(null);
 
 export function RoutingDecisionProvider({ children }: { children: ReactNode }) {
-  const [decisions, setDecisions] = useState<Record<string, RoutingDecision>>(initialDecisions);
+  const { state: operationalState, approveRouting, sendRoutingBack } = useOperationalState();
+  const [decisions, setDecisions] = useState<Record<string, RoutingDecision>>(() =>
+    Object.fromEntries(
+      incidents.map((incident) => {
+        const hero = incident.id === "INC-024";
+        return [
+          incident.id,
+          {
+            incidentId: incident.id,
+            recommendedTeam: incident.recommendedTeam,
+            currentTeam:
+              hero && operationalState.assignedTeam
+                ? operationalState.assignedTeam
+                : incident.currentTeam,
+            selectedTeam:
+              hero && operationalState.assignedTeam
+                ? operationalState.assignedTeam
+                : incident.recommendedTeam,
+            approvedTeam:
+              hero && operationalState.assignmentCreated
+                ? operationalState.assignedTeam
+                : undefined,
+            status: hero
+              ? operationalState.routingStatus
+              : ("Pending Approval" as RoutingDecisionStatus),
+            decisionSource:
+              hero && operationalState.routingStatus !== "Pending Approval" ? "BQL" : undefined,
+          },
+        ];
+      }),
+    ),
+  );
 
   const value = useMemo<RoutingDecisionContextValue>(
     () => ({
@@ -58,6 +77,7 @@ export function RoutingDecisionProvider({ children }: { children: ReactNode }) {
         }));
       },
       approve(incidentId, team) {
+        const changed = team !== decisions[incidentId].recommendedTeam;
         setDecisions((current) => {
           const decision = current[incidentId];
           return {
@@ -77,6 +97,7 @@ export function RoutingDecisionProvider({ children }: { children: ReactNode }) {
             },
           };
         });
+        if (incidentId === "INC-024") approveRouting(team, changed);
       },
       sendBack(incidentId, reason) {
         setDecisions((current) => ({
@@ -90,9 +111,10 @@ export function RoutingDecisionProvider({ children }: { children: ReactNode }) {
             decidedAt: "Just now · prototype state",
           },
         }));
+        if (incidentId === "INC-024") sendRoutingBack();
       },
     }),
-    [decisions],
+    [approveRouting, decisions, sendRoutingBack],
   );
 
   return (

@@ -41,6 +41,7 @@ import {
 } from "./components";
 import { incidents, tickets, type Incident, type Ticket as TicketType } from "./data";
 import { IncidentIntelligencePage } from "./incident-detail";
+import { useOperationalState } from "./operational-state";
 import { ResidentIssueStatusPage, ResidentReportPage } from "./resident-workflow";
 import { RoutingApprovalPage, RoutingRecommendationPage } from "./routing-workflow";
 import { TechnicianExecutionPage, TechnicianTaskQueuePage } from "./technician-workflow";
@@ -216,7 +217,7 @@ interface DashboardIncident {
   title: string;
   location: string;
   priority: "Critical" | "High" | "Medium";
-  status: "Pending Approval" | "Assigned" | "In Progress";
+  status: "Pending Approval" | "Assigned" | "In Progress" | "Resolution Review" | "Resolved";
   tickets: number;
   team: string;
   slaState: SlaState;
@@ -287,9 +288,6 @@ const dashboardIncidents: DashboardIncident[] = [
     approvalReason: "Four reports indicate a shared floor-level HVAC issue",
   },
 ];
-
-const pendingApprovalIncidents = [dashboardIncidents[0], dashboardIncidents[3]];
-const attentionIncidents = [dashboardIncidents[0], dashboardIncidents[1], dashboardIncidents[3]];
 
 function AttentionMetricCard({
   value,
@@ -403,7 +401,56 @@ function AttentionRow({
 
 export function DashboardPage() {
   const navigate = useNavigate();
+  const { state: operationalState } = useOperationalState();
   const queueRoute = "/bql/incidents";
+  const heroAction = {
+    "Pending Approval": {
+      nextAction: "Review the recommended plumbing assignment",
+      actionLabel: "Review approval",
+      actionRoute: "/bql/incidents/INC-024/approval",
+    },
+    Assigned: {
+      nextAction: "Monitor the BQL-approved assignment",
+      actionLabel: "Monitor assignment",
+      actionRoute: "/bql/incidents/INC-024",
+    },
+    "In Progress": {
+      nextAction: "Monitor field work and SLA risk",
+      actionLabel: "Monitor field work",
+      actionRoute: "/bql/incidents/INC-024",
+    },
+    "Resolution Review": {
+      nextAction: "Review the technician-recorded outcome",
+      actionLabel: "Review outcome",
+      actionRoute: "/bql/incidents/INC-024",
+    },
+    Resolved: {
+      nextAction: "Review the completed operational outcome",
+      actionLabel: "Review completed outcome",
+      actionRoute: "/bql/incidents/INC-024",
+    },
+  }[operationalState.incidentStatus];
+  const heroIncident: DashboardIncident = {
+    ...dashboardIncidents[0],
+    status: operationalState.incidentStatus,
+    team: operationalState.assignedTeam ?? dashboardIncidents[0].team,
+    ...heroAction,
+  };
+  const liveAttentionIncidents = [heroIncident, dashboardIncidents[1], dashboardIncidents[3]];
+  const liveCriticalIncidents = [heroIncident, dashboardIncidents[1]];
+  const livePendingIncidents =
+    operationalState.routingStatus === "Pending Approval" ||
+    operationalState.routingStatus === "Sent Back"
+      ? [heroIncident, dashboardIncidents[3]]
+      : [dashboardIncidents[3]];
+  const liveSlaIncidents = [heroIncident, ...dashboardIncidents.slice(1)];
+  const heroActivity = {
+    "Pending Approval": "Plumbing assignment recommended",
+    Assigned: "Plumbing assignment approved by BQL",
+    "In Progress": "Technician work started",
+    "Resolution Review": "Technician outcome awaiting BQL review",
+    Resolved: "Resolution confirmed by BQL",
+  }[operationalState.incidentStatus];
 
   return (
     <>
@@ -437,7 +484,12 @@ export function DashboardPage() {
             onClick={() => navigate(queueRoute)}
           />
           <AttentionMetricCard
-            value="3"
+            value={
+              operationalState.routingStatus === "Pending Approval" ||
+              operationalState.routingStatus === "Sent Back"
+                ? "3"
+                : "2"
+            }
             label="Pending approval"
             detail="Human decision required"
             tone="approval"
@@ -472,11 +524,11 @@ export function DashboardPage() {
             </p>
           </div>
           <span className="rounded-full bg-orange-50 px-3 py-1 text-xs font-bold text-orange-700 ring-1 ring-inset ring-orange-600/15">
-            3 actions due
+            {liveAttentionIncidents.length} actions due
           </span>
         </div>
         <div className="divide-y divide-slate-100">
-          {attentionIncidents.map((item) => (
+          {liveAttentionIncidents.map((item) => (
             <AttentionRow key={item.id} item={item} navigate={navigate} />
           ))}
         </div>
@@ -486,7 +538,7 @@ export function DashboardPage() {
         <Card className="overflow-hidden">
           <SectionHeading title="Critical Incidents" meta="Immediate attention" />
           <div className="divide-y divide-slate-100">
-            {dashboardIncidents.slice(0, 2).map((item) => (
+            {liveCriticalIncidents.map((item) => (
               <div key={item.id} className="p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
@@ -529,7 +581,7 @@ export function DashboardPage() {
             </p>
           </div>
           <div className="divide-y divide-slate-100">
-            {pendingApprovalIncidents.map((item) => (
+            {livePendingIncidents.map((item) => (
               <div key={item.id} className="p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div>
@@ -559,7 +611,7 @@ export function DashboardPage() {
         <Card className="overflow-hidden">
           <SectionHeading title="SLA Risk" meta="Mock operational clock" />
           <div className="divide-y divide-slate-100">
-            {dashboardIncidents
+            {liveSlaIncidents
               .filter((item) => item.slaState !== "On track")
               .map((item) => (
                 <div key={item.id} className="p-4">
@@ -603,7 +655,7 @@ export function DashboardPage() {
         <div className="grid divide-y divide-slate-100 md:grid-cols-3 md:divide-x md:divide-y-0">
           {[
             ["INC-026", "Electrical team started work", "8 min ago"],
-            ["INC-024", "Plumbing assignment recommended", "18 min ago"],
+            ["INC-024", heroActivity, "Just now"],
             ["INC-025", "SLA entered breach", "24 min ago"],
           ].map(([id, activity, time]) => (
             <Link

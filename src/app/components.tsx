@@ -164,6 +164,7 @@ export function StatusBadge({ status }: { status: Status }) {
     "Pending Approval": "bg-violet-50 text-violet-700 ring-violet-600/15",
     Assigned: "bg-blue-50 text-blue-700 ring-blue-600/15",
     "In Progress": "bg-amber-50 text-amber-700 ring-amber-600/15",
+    "Resolution Review": "bg-violet-50 text-violet-700 ring-violet-600/15",
     "Under Review": "bg-slate-100 text-slate-700 ring-slate-500/10",
     Resolved: "bg-emerald-50 text-emerald-700 ring-emerald-600/15",
   };

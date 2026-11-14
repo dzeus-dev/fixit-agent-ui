@@ -4,6 +4,7 @@ export type Status =
   | "Pending Approval"
   | "Assigned"
   | "In Progress"
+  | "Resolution Review"
   | "Under Review"
   | "Resolved";
 
@@ -242,7 +243,7 @@ export const tasks: TechnicianTask[] = [
     incidentId: "INC-026",
     incidentTitle: "Electrical issue",
     title: "Inspect corridor electrical circuit",
-    location: "Tower B · Floor 8",
+    location: "Tower A · Floor 8",
     assignedTeam: "Technical — Electrical",
     status: "In Progress",
     priority: "High",

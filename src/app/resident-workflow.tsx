@@ -461,7 +461,7 @@ export function ResidentIssueStatusPage() {
 
           <details className="rounded-xl border border-dashed border-slate-300 bg-white">
             <summary className="cursor-pointer px-4 py-3 text-xs font-semibold text-slate-500">
-              Prototype status preview
+              Prototype / Demo control
             </summary>
             <div className="border-t border-slate-100 p-4">
               <p className="mb-2 text-xs leading-5 text-slate-400">

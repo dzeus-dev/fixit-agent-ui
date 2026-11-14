@@ -23,6 +23,7 @@ import {
   StatusBadge,
 } from "./components";
 import { incidents, tickets } from "./data";
+import { useOperationalState } from "./operational-state";
 import { useRoutingDecisions } from "./routing-decision";
 
 type SlaState = "On track" | "At risk" | "Breached";
@@ -48,12 +49,26 @@ export function IncidentIntelligencePage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const incident = incidents.find((item) => item.id === id) ?? incidents[0];
+  const { state: operationalState, confirmResolution, requestFollowUp } = useOperationalState();
   const { decisions } = useRoutingDecisions();
   const routingDecision = decisions[incident.id];
-  const assigned = routingDecision.status === "Approved" || routingDecision.status === "Changed";
-  const sentBack = routingDecision.status === "Sent Back";
-  const operationalStatus = assigned ? "Assigned" : sentBack ? "Under Review" : incident.status;
-  const operationalTeam = routingDecision.approvedTeam ?? routingDecision.currentTeam;
+  const isHeroIncident = incident.id === "INC-024";
+  const assigned = isHeroIncident
+    ? operationalState.assignmentCreated
+    : routingDecision.status === "Approved" || routingDecision.status === "Changed";
+  const sentBack = isHeroIncident
+    ? operationalState.routingStatus === "Sent Back"
+    : routingDecision.status === "Sent Back";
+  const operationalStatus = isHeroIncident
+    ? operationalState.incidentStatus
+    : assigned
+      ? "Assigned"
+      : sentBack
+        ? "Under Review"
+        : incident.status;
+  const operationalTeam = isHeroIncident
+    ? (operationalState.assignedTeam ?? routingDecision.currentTeam)
+    : (routingDecision.approvedTeam ?? routingDecision.currentTeam);
   const related = tickets.filter((ticket) => ticket.incident === incident.id);
   const [clarificationState, setClarificationState] = useState<"idle" | "composing" | "sent">(
     "idle",
@@ -126,29 +141,54 @@ export function IncidentIntelligencePage() {
       ];
   const timeline = [
     ...baseTimeline,
-    ...(assigned
-      ? [["Now", `${operationalTeam} assignment approved by BQL`]]
-      : sentBack
-        ? [["Now", "BQL sent routing back for review"]]
-        : []),
+    ...(isHeroIncident && operationalState.incidentStatus === "Resolved"
+      ? [["Now", "BQL confirmed the technician outcome and resolved the incident"]]
+      : isHeroIncident && operationalState.incidentStatus === "Resolution Review"
+        ? [["Now", "Technician resolution submitted for BQL review"]]
+        : isHeroIncident && operationalState.incidentStatus === "In Progress"
+          ? [["Now", "Technician work is in progress"]]
+          : assigned
+            ? [["Now", `${operationalTeam} assignment approved by BQL`]]
+            : sentBack
+              ? [["Now", "BQL sent routing back for review"]]
+              : []),
   ];
-  const primaryAction = assigned
-    ? {
-        label: "View assignment",
-        heading: "Monitor assignment and begin field work",
-        route: `/bql/incidents/${incident.id}/approval`,
-      }
-    : sentBack
+  const primaryAction =
+    isHeroIncident && operationalState.incidentStatus === "Resolution Review"
       ? {
-          label: "Review routing",
-          heading: "Review routing recommendation",
-          route: `/bql/incidents/${incident.id}/routing`,
+          label: "View technician outcome",
+          heading: "Review technician outcome",
+          route: "/technician/tasks/TASK-102",
         }
-      : {
-          label: "Review assignment",
-          heading: `Approve routing to ${incident.recommendedTeam}`,
-          route: `/bql/incidents/${incident.id}/approval`,
-        };
+      : isHeroIncident && operationalState.incidentStatus === "Resolved"
+        ? {
+            label: "View completed task",
+            heading: "Review completed outcome",
+            route: "/technician/tasks/TASK-102",
+          }
+        : isHeroIncident && operationalState.incidentStatus === "In Progress"
+          ? {
+              label: "Monitor field work",
+              heading: "Monitor assignment and field work",
+              route: "/technician/tasks/TASK-102",
+            }
+          : assigned
+            ? {
+                label: "View assignment",
+                heading: "Monitor assignment and begin field work",
+                route: `/bql/incidents/${incident.id}/approval`,
+              }
+            : sentBack
+              ? {
+                  label: "Review routing",
+                  heading: "Review routing recommendation",
+                  route: `/bql/incidents/${incident.id}/routing`,
+                }
+              : {
+                  label: "Review assignment",
+                  heading: `Approve routing to ${incident.recommendedTeam}`,
+                  route: `/bql/incidents/${incident.id}/approval`,
+                };
 
   return (
     <>
@@ -177,6 +217,11 @@ export function IncidentIntelligencePage() {
             </p>
           </div>
           <div className="flex shrink-0 flex-wrap gap-2">
+            {assigned && (
+              <Button variant="secondary" onClick={() => navigate("/technician/tasks/TASK-102")}>
+                View technician task
+              </Button>
+            )}
             <Button
               variant="secondary"
               onClick={() => navigate(`/bql/incidents/${incident.id}/routing`)}
@@ -231,11 +276,17 @@ export function IncidentIntelligencePage() {
               <SummaryItem
                 label="Current state"
                 text={
-                  assigned
-                    ? `${operationalTeam} is assigned through a BQL-approved routing decision.`
-                    : sentBack
-                      ? `BQL sent the ${incident.recommendedTeam} recommendation back for routing review.`
-                      : `Reports are coordinated as one incident. BQL review is required for the ${incident.recommendedTeam} recommendation.`
+                  isHeroIncident && operationalState.incidentStatus === "Resolution Review"
+                    ? "The technician recorded a resolution. BQL must review the outcome before the incident can be resolved."
+                    : isHeroIncident && operationalState.incidentStatus === "Resolved"
+                      ? "BQL reviewed the technician outcome and marked the incident resolved."
+                      : isHeroIncident && operationalState.incidentStatus === "In Progress"
+                        ? `${operationalTeam} is carrying out the approved field work.`
+                        : assigned
+                          ? `${operationalTeam} is assigned through a BQL-approved routing decision.`
+                          : sentBack
+                            ? `BQL sent the ${incident.recommendedTeam} recommendation back for routing review.`
+                            : `Reports are coordinated as one incident. BQL review is required for the ${incident.recommendedTeam} recommendation.`
                 }
               />
             </div>
@@ -455,6 +506,116 @@ export function IncidentIntelligencePage() {
             </div>
           </Card>
 
+          {isHeroIncident &&
+            operationalState.resolution &&
+            (operationalState.incidentStatus === "Resolution Review" ||
+              operationalState.incidentStatus === "Resolved" ||
+              operationalState.taskStatus === "Needs Follow-up") && (
+              <Card className="overflow-hidden border-blue-200">
+                <div className="flex flex-col gap-3 border-b border-blue-100 bg-blue-50/60 px-5 py-4 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h2 className="text-[15px] font-bold text-slate-950">Resolution Review</h2>
+                      <span className="rounded bg-blue-100 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.07em] text-blue-700">
+                        Technician action
+                      </span>
+                    </div>
+                    <p className="mt-1 text-xs text-slate-500">
+                      TASK-102 · Technician outcome awaiting operational review
+                    </p>
+                  </div>
+                  <StatusBadge
+                    status={
+                      operationalState.incidentStatus === "Resolved"
+                        ? "Resolved"
+                        : operationalState.incidentStatus === "Resolution Review"
+                          ? "Resolution Review"
+                          : "In Progress"
+                    }
+                  />
+                </div>
+                <div className="grid gap-px bg-slate-200 sm:grid-cols-2">
+                  <ResolutionFact
+                    label="Task status"
+                    value={operationalState.taskStatus}
+                    provenance="System record"
+                  />
+                  <ResolutionFact
+                    label="Resolution status"
+                    value={operationalState.resolution.resolutionStatus}
+                    provenance="Technician action"
+                    technician
+                  />
+                  <ResolutionFact
+                    label="Resolution note"
+                    value={operationalState.resolution.resolutionNote || "Not provided"}
+                    provenance="Technician action"
+                    technician
+                  />
+                  <ResolutionFact
+                    label="Finding"
+                    value={operationalState.resolution.finding || "Not provided"}
+                    provenance="Technician action"
+                    technician
+                  />
+                  <ResolutionFact
+                    label="Affected area confirmed"
+                    value={operationalState.resolution.affectedAreaConfirmed}
+                    provenance="Technician action"
+                    technician
+                  />
+                  <ResolutionFact
+                    label="Current incident state"
+                    value={
+                      operationalState.incidentStatus === "Resolution Review"
+                        ? "Resolution pending review"
+                        : operationalState.incidentStatus
+                    }
+                    provenance="System record"
+                  />
+                </div>
+                {operationalState.incidentStatus === "Resolution Review" ? (
+                  <div className="flex flex-col gap-3 p-5 sm:flex-row sm:items-center">
+                    <div className="flex-1">
+                      <p className="text-xs font-bold text-slate-800">
+                        BQL closure decision required
+                      </p>
+                      <p className="mt-1 text-xs leading-5 text-slate-500">
+                        Confirm the outcome or request follow-up. Task resolution has not closed the
+                        incident.
+                      </p>
+                    </div>
+                    <Button variant="secondary" onClick={requestFollowUp}>
+                      Request follow-up
+                    </Button>
+                    <Button onClick={confirmResolution}>Confirm resolution</Button>
+                  </div>
+                ) : operationalState.incidentStatus === "Resolved" ? (
+                  <div
+                    className="flex items-center gap-3 border-t border-emerald-100 bg-emerald-50 px-5 py-4"
+                    role="status"
+                  >
+                    <CheckCircle2 size={18} className="text-emerald-700" />
+                    <div>
+                      <p className="text-sm font-bold text-emerald-900">
+                        Resolution confirmed by BQL
+                      </p>
+                      <p className="mt-1 text-xs text-emerald-700">
+                        Human decision · Resident status updated to Issue resolved
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="border-t border-amber-100 bg-amber-50 px-5 py-4">
+                    <p className="text-sm font-bold text-amber-900">Follow-up requested by BQL</p>
+                    <p className="mt-1 text-xs text-amber-700">
+                      Human decision · No autonomous reassignment was created
+                    </p>
+                  </div>
+                )}
+              </Card>
+            )}
+
           <Card className="overflow-hidden">
             <SectionHeading title="Information Gaps" meta="Clarification may be required" />
             <div className="grid gap-4 p-5 md:grid-cols-2">
@@ -623,11 +784,15 @@ export function IncidentIntelligencePage() {
               <DetailRow label="Last human decision">
                 <TraceabilityValue
                   value={
-                    assigned
-                      ? (routingDecision.decisionReason ?? "BQL approved routing")
-                      : sentBack
-                        ? `Sent back: ${routingDecision.decisionReason}`
-                        : "None recorded"
+                    isHeroIncident && operationalState.bqlReviewStatus === "Closed"
+                      ? "BQL confirmed the technician resolution"
+                      : isHeroIncident && operationalState.taskStatus === "Needs Follow-up"
+                        ? "BQL requested follow-up"
+                        : assigned
+                          ? (routingDecision.decisionReason ?? "BQL approved routing")
+                          : sentBack
+                            ? `Sent back: ${routingDecision.decisionReason}`
+                            : "None recorded"
                   }
                   provenance="Human decision"
                   tone="human"
@@ -650,7 +815,11 @@ export function IncidentIntelligencePage() {
             <div className="mx-5 mb-5 flex items-center gap-2 rounded-lg bg-slate-50 p-3 text-xs font-medium text-slate-600">
               <FileCheck2 size={16} className="text-slate-500" />
               {assigned
-                ? "Assignment created from BQL-approved routing"
+                ? operationalState.bqlReviewStatus === "Closed"
+                  ? "Incident resolved through BQL final review"
+                  : operationalState.incidentStatus === "Resolution Review"
+                    ? "Technician outcome awaiting BQL review"
+                    : "Assignment created from BQL-approved routing"
                 : sentBack
                   ? "Routing review requested by BQL"
                   : "Awaiting BQL approval"}
@@ -723,6 +892,34 @@ function SummaryItem({ label, text }: { label: string; text: string }) {
     <div>
       <p className="text-xs font-bold uppercase tracking-[0.09em] text-slate-400">{label}</p>
       <p className="mt-2 text-sm font-medium leading-6 text-slate-800">{text}</p>
+    </div>
+  );
+}
+
+function ResolutionFact({
+  label,
+  value,
+  provenance,
+  technician = false,
+}: {
+  label: string;
+  value: string;
+  provenance: string;
+  technician?: boolean;
+}) {
+  return (
+    <div className="bg-white p-4">
+      <div className="flex items-center gap-2">
+        <p className="text-[10px] font-bold uppercase tracking-[0.09em] text-slate-400">{label}</p>
+        <span
+          className={`rounded px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.07em] ${
+            technician ? "bg-blue-100 text-blue-700" : "bg-slate-100 text-slate-600"
+          }`}
+        >
+          {provenance}
+        </span>
+      </div>
+      <p className="mt-2 text-sm font-semibold leading-5 text-slate-900">{value}</p>
     </div>
   );
 }
