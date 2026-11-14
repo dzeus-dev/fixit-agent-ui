@@ -756,7 +756,7 @@ function IncidentRow({ incident }: { incident: Incident }) {
           </div>
         </div>
       </td>
-      <td className="px-5 py-4 text-sm text-slate-600">{incident.location}</td>
+      <td className="px-5 py-4 text-sm text-slate-600">{incident.officialLocation}</td>
       <td className="px-5 py-4">
         <span className="inline-flex items-center gap-1.5 rounded-md bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-700">
           <Ticket size={13} />
@@ -770,7 +770,7 @@ function IncidentRow({ incident }: { incident: Incident }) {
         <StatusBadge status={incident.status} />
       </td>
       <td className="px-5 py-4 whitespace-nowrap text-sm font-medium text-slate-700">
-        {incident.team}
+        {incident.currentTeam}
       </td>
       <td
         className={`px-5 py-4 whitespace-nowrap text-sm font-bold ${slaColors[incident.slaTone]}`}
@@ -794,7 +794,8 @@ export function RoutingPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const incident = getIncident(id);
-  const initialTeam = incident.team === "Unassigned" ? "Technical — Plumbing" : incident.team;
+  const initialTeam =
+    incident.recommendedTeam === "Unassigned" ? "Technical — Plumbing" : incident.recommendedTeam;
   const [selectedTeam, setSelectedTeam] = useState(initialTeam);
   const [changing, setChanging] = useState(false);
   const [approved, setApproved] = useState(false);
@@ -852,7 +853,7 @@ export function RoutingPage() {
           <div className="grid gap-3 p-5 sm:grid-cols-3">
             {[
               ["Required skill", selectedSkill],
-              ["Location", incident.location.split(" / ")[0]],
+              ["Location", incident.officialLocation.split(" / ")[0]],
               ["Current workload", "Moderate"],
             ].map(([label, value]) => (
               <div key={label} className="rounded-lg border border-slate-200 p-4">
@@ -1006,7 +1007,7 @@ export function ApprovalPage() {
                   Incident summary
                 </p>
                 <p className="mt-2 font-semibold text-slate-900">
-                  {incident.title} at {incident.location}
+                  {incident.title} at {incident.officialLocation}
                 </p>
               </div>
               <div className="rounded-lg bg-slate-50 p-4">
@@ -1023,7 +1024,7 @@ export function ApprovalPage() {
                 AI recommendation
               </p>
               <p className="mt-2 text-sm font-semibold text-slate-900">
-                Correlate {incident.tickets} reports and route to {incident.team}.
+                Correlate {incident.tickets} reports and recommend {incident.recommendedTeam}.
               </p>
               <p className="mt-2 text-sm leading-6 text-slate-500">
                 Evidence: shared issue category, nearby locations, and reports submitted within a

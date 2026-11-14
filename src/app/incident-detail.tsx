@@ -55,8 +55,11 @@ export function IncidentIntelligencePage() {
   const isWaterIncident = incident.id === "INC-024";
   const category = isWaterIncident
     ? "Plumbing"
-    : incident.team.replace("Technical — ", "").replace("Vertical Transport", "Mechanical");
-  const verifiedLocation = isWaterIncident ? "Tower A · Floors 12–14" : incident.location;
+    : incident.recommendedTeam
+        .replace("Technical — ", "")
+        .replace("Vertical Transport", "Mechanical");
+  const locationOnRecord = incident.officialLocation;
+  const correlatedScope = incident.correlatedAffectedArea;
   const slaState: SlaState =
     incident.slaTone === "danger"
       ? "Breached"
@@ -73,7 +76,7 @@ export function IncidentIntelligencePage() {
     : [
         `${incident.title} reported`,
         `${related.length} related resident ${related.length === 1 ? "report" : "reports"}`,
-        `Reports concentrated near ${incident.location}`,
+        `Reports concentrated near ${incident.officialLocation}`,
       ];
   const signals = isWaterIncident
     ? ["Multi-unit impact", "Active leakage", "Property damage risk", "Multiple related reports"]
@@ -104,7 +107,7 @@ export function IncidentIntelligencePage() {
         ["13:49", "Related report identified"],
         ["13:54", "AI extraction completed"],
         ["13:55", "Incident created"],
-        ["13:58", `${incident.team} identified as the current team`],
+        ["13:58", `${incident.currentTeam} recorded as the current team`],
         ["14:02", `Status updated to ${incident.status}`],
       ];
   const primaryAction =
@@ -135,7 +138,7 @@ export function IncidentIntelligencePage() {
               {incident.title}
             </h1>
             <p className="mt-2 flex items-center gap-1.5 text-sm text-slate-500">
-              <MapPin size={15} /> {verifiedLocation}
+              <MapPin size={15} /> {locationOnRecord}
             </p>
           </div>
           <div className="flex shrink-0 flex-wrap gap-2">
@@ -164,7 +167,7 @@ export function IncidentIntelligencePage() {
             <span className="text-sm font-bold text-slate-900">{incident.tickets}</span>
           </HeaderFact>
           <HeaderFact label="Current team">
-            <span className="text-sm font-bold text-slate-900">{incident.team}</span>
+            <span className="text-sm font-bold text-slate-900">{incident.currentTeam}</span>
           </HeaderFact>
         </div>
       </Card>
@@ -179,7 +182,7 @@ export function IncidentIntelligencePage() {
                 text={
                   isWaterIncident
                     ? "Multiple residents reported active water leakage affecting units across three adjacent floors."
-                    : `${related.length || incident.tickets} reports describe ${incident.title.toLowerCase()} near ${incident.location}.`
+                    : `${related.length || incident.tickets} reports describe ${incident.title.toLowerCase()} near ${incident.officialLocation}.`
                 }
               />
               <SummaryItem
@@ -192,9 +195,25 @@ export function IncidentIntelligencePage() {
               />
               <SummaryItem
                 label="Current state"
-                text={`Reports are coordinated as one incident. The recommended team is ${incident.team}.`}
+                text={`Reports are coordinated as one incident. BQL review is required for the ${incident.recommendedTeam} recommendation.`}
               />
             </div>
+            {correlatedScope && (
+              <div className="flex flex-col gap-2 border-t border-indigo-100 bg-indigo-50/40 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.08em] text-indigo-700">
+                      Correlation-derived
+                    </span>
+                    <p className="text-xs font-bold text-slate-800">Correlated affected area</p>
+                  </div>
+                  <p className="mt-1.5 text-sm font-bold text-slate-950">{correlatedScope}</p>
+                </div>
+                <p className="text-xs text-slate-500">
+                  Derived from {incident.tickets} related resident reports
+                </p>
+              </div>
+            )}
           </Card>
 
           <Card accent className="overflow-hidden">
@@ -405,7 +424,9 @@ export function IncidentIntelligencePage() {
           <Card>
             <SectionHeading title="System-verified Facts" meta="Operational record" />
             <dl className="px-5">
-              <DetailRow label="Location">{verifiedLocation}</DetailRow>
+              <DetailRow label="Incident ID">{incident.id}</DetailRow>
+              <DetailRow label="Property">Sunrise Residence</DetailRow>
+              <DetailRow label="Location on record">{locationOnRecord}</DetailRow>
               <DetailRow label="Related reports">{incident.tickets}</DetailRow>
               <DetailRow label="SLA state">
                 <SlaBadge state={slaState} />
@@ -413,7 +434,7 @@ export function IncidentIntelligencePage() {
               <DetailRow label="Status">
                 <StatusBadge status={incident.status} />
               </DetailRow>
-              <DetailRow label="Current team">{incident.team}</DetailRow>
+              <DetailRow label="Current team">{incident.currentTeam}</DetailRow>
             </dl>
             <div className="mx-5 mb-5 flex gap-2 rounded-lg bg-slate-50 p-3 text-xs leading-5 text-slate-500">
               <ShieldCheck size={16} className="mt-0.5 shrink-0 text-slate-600" />
@@ -432,7 +453,7 @@ export function IncidentIntelligencePage() {
               <p className="text-[10px] font-bold uppercase tracking-[0.09em] text-indigo-600">
                 AI recommendation
               </p>
-              <p className="mt-1 text-sm font-bold text-slate-900">{incident.team}</p>
+              <p className="mt-1 text-sm font-bold text-slate-900">{incident.recommendedTeam}</p>
               <p className="mt-1 text-xs leading-5 text-slate-500">
                 {isWaterIncident
                   ? "Multiple-unit active leakage + plumbing category + current team workload"
@@ -445,7 +466,7 @@ export function IncidentIntelligencePage() {
               <ul className="mt-2 space-y-2 text-xs text-slate-600">
                 {[
                   `Required skill: ${category}`,
-                  `Location: ${incident.location.split(" / ")[0]}`,
+                  `Location: ${incident.officialLocation.split(" / ")[0]}`,
                   "Current workload: Medium",
                 ].map((check) => (
                   <li key={check} className="flex items-center gap-2">
@@ -471,17 +492,35 @@ export function IncidentIntelligencePage() {
               <p className="mt-4 text-center text-[11px] font-semibold text-slate-400">
                 AI recommends → System verifies → BQL decides
               </p>
+              <p className="mt-2 text-center text-[11px] leading-4 text-slate-500">
+                {incident.status === "Assigned" || incident.status === "In Progress"
+                  ? "Current assignment is recorded in the operational system."
+                  : "Recommendation only — assignment requires BQL approval."}
+              </p>
             </div>
           </Card>
 
           <Card>
             <SectionHeading title="Evidence & Traceability" />
             <div className="px-5">
-              <DetailRow label="Source reports">{incident.tickets} resident reports</DetailRow>
-              <DetailRow label="AI extraction">14:16</DetailRow>
-              <DetailRow label="Priority assessment">14:17</DetailRow>
-              <DetailRow label="Last human decision">None recorded</DetailRow>
-              <DetailRow label="Current owner">{incident.team}</DetailRow>
+              <DetailRow label="Source reports">
+                <TraceabilityValue
+                  value={`${incident.tickets} resident reports`}
+                  provenance="System record"
+                />
+              </DetailRow>
+              <DetailRow label="AI extraction">
+                <TraceabilityValue value="14:16" provenance="AI-generated" tone="ai" />
+              </DetailRow>
+              <DetailRow label="Priority assessment">
+                <TraceabilityValue value="14:17" provenance="AI + rules" tone="ai" />
+              </DetailRow>
+              <DetailRow label="Last human decision">
+                <TraceabilityValue value="None recorded" provenance="Human decision" tone="human" />
+              </DetailRow>
+              <DetailRow label="Current owner">
+                <TraceabilityValue value={incident.currentTeam} provenance="System record" />
+              </DetailRow>
             </div>
             <div className="mx-5 mb-5 flex items-center gap-2 rounded-lg bg-slate-50 p-3 text-xs font-medium text-slate-600">
               <FileCheck2 size={16} className="text-slate-500" />
@@ -556,6 +595,33 @@ function SummaryItem({ label, text }: { label: string; text: string }) {
       <p className="text-xs font-bold uppercase tracking-[0.09em] text-slate-400">{label}</p>
       <p className="mt-2 text-sm font-medium leading-6 text-slate-800">{text}</p>
     </div>
+  );
+}
+
+function TraceabilityValue({
+  value,
+  provenance,
+  tone = "system",
+}: {
+  value: string;
+  provenance: string;
+  tone?: "system" | "ai" | "human";
+}) {
+  const styles = {
+    system: "bg-slate-100 text-slate-600",
+    ai: "bg-indigo-50 text-indigo-700",
+    human: "bg-amber-50 text-amber-700",
+  }[tone];
+
+  return (
+    <span className="flex flex-col items-end gap-1.5">
+      <span>{value}</span>
+      <span
+        className={`rounded px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.07em] ${styles}`}
+      >
+        {provenance}
+      </span>
+    </span>
   );
 }
 

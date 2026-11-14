@@ -21,11 +21,13 @@ export interface Ticket {
 export interface Incident {
   id: string;
   title: string;
-  location: string;
+  officialLocation: string;
+  correlatedAffectedArea?: string;
   tickets: number;
   priority: Priority;
   status: Status;
-  team: string;
+  currentTeam: string;
+  recommendedTeam: string;
   sla: string;
   slaTone: "safe" | "warning" | "danger";
 }
@@ -116,44 +118,49 @@ export const incidents: Incident[] = [
   {
     id: "INC-024",
     title: "Water leak affecting multiple units",
-    location: "Tower A / Floor 12",
+    officialLocation: "Tower A / Floor 12",
+    correlatedAffectedArea: "Tower A / Floors 12–14",
     tickets: 6,
     priority: "Critical",
     status: "Pending Approval",
-    team: "Technical — Plumbing",
+    currentTeam: "Technical — Plumbing",
+    recommendedTeam: "Technical — Plumbing",
     sla: "1h 42m left",
     slaTone: "warning",
   },
   {
     id: "INC-025",
     title: "Elevator Failure",
-    location: "Tower B",
+    officialLocation: "Tower B",
     tickets: 2,
     priority: "Critical",
     status: "Assigned",
-    team: "Vertical Transport",
+    currentTeam: "Vertical Transport",
+    recommendedTeam: "Vertical Transport",
     sla: "28m left",
     slaTone: "danger",
   },
   {
     id: "INC-026",
     title: "Electrical Issue",
-    location: "Tower A / Floor 8",
+    officialLocation: "Tower A / Floor 8",
     tickets: 2,
     priority: "High",
     status: "In Progress",
-    team: "Electrical",
+    currentTeam: "Electrical",
+    recommendedTeam: "Technical — Electrical",
     sla: "3h 15m left",
     slaTone: "safe",
   },
   {
     id: "INC-027",
     title: "HVAC Temperature Alert",
-    location: "Tower C / Floor 6",
+    officialLocation: "Tower C / Floor 6",
     tickets: 4,
     priority: "Medium",
     status: "Pending Approval",
-    team: "Technical — HVAC",
+    currentTeam: "Technical — HVAC",
+    recommendedTeam: "Technical — HVAC",
     sla: "5h 08m left",
     slaTone: "safe",
   },
