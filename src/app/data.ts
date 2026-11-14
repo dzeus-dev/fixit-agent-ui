@@ -32,6 +32,31 @@ export interface Incident {
   slaTone: "safe" | "warning" | "danger";
 }
 
+export type TaskStatus = "Assigned" | "In Progress" | "Resolved" | "Needs Follow-up";
+export type ResolutionStatus = "Resolved" | "Unable to resolve" | "Requires follow-up";
+export type AffectedAreaConfirmation = "Yes" | "No" | "Needs further inspection";
+
+export interface TechnicianTask {
+  id: string;
+  sourceTicketId: string;
+  incidentId: string;
+  incidentTitle: string;
+  title: string;
+  location: string;
+  assignedTeam: string;
+  status: TaskStatus;
+  priority: Priority;
+  assignmentSource: "BQL";
+  sla: string;
+  startedAt?: string;
+  resolvedAt?: string;
+  resolutionStatus?: ResolutionStatus;
+  resolutionNote?: string;
+  finding?: string;
+  affectedAreaConfirmed?: AffectedAreaConfirmation;
+  escalationReason?: string;
+}
+
 export const tickets: Ticket[] = [
   {
     id: "TKT-1024",
@@ -166,32 +191,45 @@ export const incidents: Incident[] = [
   },
 ];
 
-export const tasks = [
+export const tasks: TechnicianTask[] = [
   {
     id: "TASK-102",
-    incident: "Water Leakage",
+    sourceTicketId: "TKT-1024",
     incidentId: "INC-024",
-    location: "Tower A / Floor 12",
-    priority: "High" as Priority,
-    status: "Assigned" as Status,
-    issue: "Inspect the service riser and isolate the source of the active leak.",
+    incidentTitle: "Water leak affecting multiple units",
+    title: "Investigate active water leak",
+    location: "Tower A · Floor 12",
+    assignedTeam: "Technical — Plumbing",
+    status: "Assigned",
+    priority: "Critical",
+    assignmentSource: "BQL",
+    sla: "At risk · 1h 42m",
   },
   {
     id: "TASK-098",
-    incident: "Electrical Issue",
+    sourceTicketId: "TKT-1018",
     incidentId: "INC-026",
-    location: "Tower B / Floor 8",
-    priority: "High" as Priority,
-    status: "In Progress" as Status,
-    issue: "Inspect breaker panel and affected corridor fixtures.",
+    incidentTitle: "Electrical issue",
+    title: "Inspect corridor electrical circuit",
+    location: "Tower B · Floor 8",
+    assignedTeam: "Technical — Electrical",
+    status: "In Progress",
+    priority: "High",
+    assignmentSource: "BQL",
+    sla: "On track · 3h 15m",
+    startedAt: "Earlier today · prototype state",
   },
   {
     id: "TASK-095",
-    incident: "Lobby Door Sensor",
+    sourceTicketId: "TKT-1009",
     incidentId: "INC-021",
-    location: "Tower C / Lobby",
-    priority: "Medium" as Priority,
-    status: "Assigned" as Status,
-    issue: "Test and recalibrate the automatic door sensor.",
+    incidentTitle: "Lobby door sensor",
+    title: "Test and recalibrate door sensor",
+    location: "Tower C · Lobby",
+    assignedTeam: "Technical — General Maintenance",
+    status: "Assigned",
+    priority: "Medium",
+    assignmentSource: "BQL",
+    sla: "On track · 5h 30m",
   },
 ];

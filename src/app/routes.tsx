@@ -2,6 +2,7 @@ import { createBrowserRouter } from "react-router";
 import { AppShell } from "./components";
 import { CorrelationReviewPage } from "./correlation-review";
 import { RoutingDecisionProvider } from "./routing-decision";
+import { TechnicianTaskProvider } from "./technician-task-state";
 import {
   ApprovalPage,
   BqlRedirect,
@@ -44,7 +45,11 @@ export const router = createBrowserRouter([
   },
   {
     path: "/technician",
-    Component: () => <AppShell role="technician" />,
+    Component: () => (
+      <TechnicianTaskProvider>
+        <AppShell role="technician" />
+      </TechnicianTaskProvider>
+    ),
     children: [
       { index: true, Component: TechRedirect },
       { path: "tasks", Component: TasksPage },

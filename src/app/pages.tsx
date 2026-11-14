@@ -39,9 +39,10 @@ import {
   Table,
   TicketMark,
 } from "./components";
-import { incidents, tasks, tickets, type Incident, type Ticket as TicketType } from "./data";
+import { incidents, tickets, type Incident, type Ticket as TicketType } from "./data";
 import { IncidentIntelligencePage } from "./incident-detail";
 import { RoutingApprovalPage, RoutingRecommendationPage } from "./routing-workflow";
+import { TechnicianExecutionPage, TechnicianTaskQueuePage } from "./technician-workflow";
 
 export function EntryPage() {
   const roles = [
@@ -800,151 +801,11 @@ export function ApprovalPage() {
 }
 
 export function TasksPage() {
-  const assigned = tasks.filter((task) => task.status === "Assigned");
-  const progress = tasks.filter((task) => task.status === "In Progress");
-  return (
-    <>
-      <PageHeader title="My Tasks" description="Assigned maintenance work for Sunrise Residence." />
-      <div className="grid gap-6 xl:grid-cols-2">
-        <TaskGroup title="Assigned" count={assigned.length} tasks={assigned} />
-        <TaskGroup title="In progress" count={progress.length} tasks={progress} />
-      </div>
-    </>
-  );
-}
-
-function TaskGroup({
-  title,
-  count,
-  tasks: taskList,
-}: {
-  title: string;
-  count: number;
-  tasks: typeof tasks;
-}) {
-  return (
-    <Card>
-      <SectionHeading title={title} meta={`${count} tasks`} />
-      <div className="divide-y divide-slate-100">
-        {taskList.map((task) => (
-          <Link
-            key={task.id}
-            to={`/technician/tasks/${task.id}`}
-            className="group flex items-center gap-4 p-5 hover:bg-slate-50"
-          >
-            <span className="grid size-10 place-items-center rounded-lg bg-blue-50 text-blue-600">
-              <Wrench size={19} />
-            </span>
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2">
-                <span className="font-mono text-xs font-bold text-blue-600">{task.id}</span>
-                <PriorityBadge priority={task.priority} />
-              </div>
-              <p className="mt-1.5 truncate text-sm font-bold text-slate-900">{task.incident}</p>
-              <p className="mt-1 flex items-center gap-1 text-xs text-slate-500">
-                <MapPin size={12} />
-                {task.location}
-              </p>
-            </div>
-            <ChevronRight size={17} className="text-slate-300 group-hover:text-blue-600" />
-          </Link>
-        ))}
-      </div>
-    </Card>
-  );
+  return <TechnicianTaskQueuePage />;
 }
 
 export function TaskDetailPage() {
-  const { id } = useParams();
-  const task = tasks.find((item) => item.id === id) ?? tasks[0];
-  const [taskStatus, setTaskStatus] = useState(task.status);
-  return (
-    <>
-      <Link
-        to="/technician/tasks"
-        className="mb-4 inline-flex items-center gap-2 text-sm font-semibold text-slate-500 hover:text-slate-900"
-      >
-        <ArrowLeft size={16} /> Back to my tasks
-      </Link>
-      <PageHeader
-        eyebrow={`Task · ${task.id}`}
-        title={task.incident}
-        description={task.location}
-        actions={<StatusBadge status={taskStatus} />}
-      />
-      <div className="grid gap-6 xl:grid-cols-[1fr_380px]">
-        <div className="space-y-6">
-          <Card>
-            <SectionHeading title="Work details" />
-            <div className="p-5">
-              <p className="text-xs font-bold uppercase tracking-[.08em] text-slate-400">Issue</p>
-              <p className="mt-2 text-sm leading-6 text-slate-700">{task.issue}</p>
-              <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                <div className="rounded-lg bg-slate-50 p-4">
-                  <p className="text-xs text-slate-500">Incident</p>
-                  <p className="mt-1 text-sm font-bold text-slate-900">{task.incidentId}</p>
-                </div>
-                <div className="rounded-lg bg-slate-50 p-4">
-                  <p className="text-xs text-slate-500">Priority</p>
-                  <div className="mt-1">
-                    <PriorityBadge priority={task.priority} />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </Card>
-          <Card>
-            <SectionHeading title="Evidence" meta="Placeholder" />
-            <div className="flex min-h-44 flex-col items-center justify-center p-6 text-center">
-              <span className="grid size-11 place-items-center rounded-full bg-slate-100 text-slate-500">
-                <Camera size={20} />
-              </span>
-              <p className="mt-3 text-sm font-semibold text-slate-800">Add site evidence</p>
-              <p className="mt-1 text-xs text-slate-500">
-                Photos and notes will be available in a later round.
-              </p>
-              <Button className="mt-4" variant="secondary" disabled>
-                <Paperclip size={15} /> Add evidence
-              </Button>
-            </div>
-          </Card>
-        </div>
-        <Card className="h-fit">
-          <SectionHeading title="Update task" />
-          <div className="space-y-3 p-5">
-            {taskStatus === "Resolved" && (
-              <div
-                className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 p-4"
-                role="status"
-              >
-                <CheckCircle2 size={19} className="text-emerald-700" />
-                <p className="mt-2 text-sm font-bold text-emerald-900">Task resolved</p>
-                <p className="mt-1 text-xs leading-5 text-emerald-700">
-                  The mock task status has been updated.
-                </p>
-              </div>
-            )}
-            <Button
-              className="w-full"
-              disabled={taskStatus !== "Assigned"}
-              onClick={() => setTaskStatus("In Progress")}
-            >
-              {taskStatus === "Assigned" ? "Start Work" : "Work Started"}
-            </Button>
-            <Button
-              className="w-full"
-              variant="secondary"
-              icon={<CheckCircle2 size={16} />}
-              disabled={taskStatus !== "In Progress"}
-              onClick={() => setTaskStatus("Resolved")}
-            >
-              Mark Resolved
-            </Button>
-          </div>
-        </Card>
-      </div>
-    </>
-  );
+  return <TechnicianExecutionPage />;
 }
 
 export function ReportPage() {
