@@ -342,7 +342,7 @@ export const uiLabels = {
     "Human override": "BQL điều chỉnh đề xuất",
     "Human-approved assignment": "Phân công được BQL phê duyệt",
     "BQL-approved assignment": "Phân công được BQL phê duyệt",
-    "BQL-approved routing": "Phân công được BQL phê duyệt",
+    "BQL-approved routing": "Điều phối được BQL phê duyệt",
     "Technician action": "Nhân viên kỹ thuật ghi nhận",
     "Correlation-derived": "Suy ra từ liên kết phản ánh",
     "Resident-provided information": "Thông tin bạn cung cấp",

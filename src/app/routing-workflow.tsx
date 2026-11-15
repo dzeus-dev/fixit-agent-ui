@@ -426,7 +426,7 @@ export function RoutingApprovalPage() {
                 <p className="mt-1.5 text-sm font-bold text-slate-900">{getBqlTeamLabel(selectedTeam)}</p>
                 {selectedTeam !== incident.recommendedTeam && (
                   <div className="mt-2">
-                    <Provenance tone="human">Human override</Provenance>
+                    <Provenance tone="human">{getProvenanceLabel("Human override")}</Provenance>
                     <p className="mt-1.5 text-xs leading-5 text-amber-800">
                       BQL đã thay đổi đội được đề xuất. Cần xác nhận rõ quyết định này.
                     </p>
@@ -588,7 +588,7 @@ function AssignmentResult({
         </div>
         {changed && (
           <div className="border-t border-amber-100 bg-amber-50 p-5">
-            <Provenance tone="human">Human override</Provenance>
+            <Provenance tone="human">{getProvenanceLabel("Human override")}</Provenance>
             <p className="mt-2 text-sm font-semibold text-slate-900">
               BQL đã đổi đội được đề xuất từ {getBqlTeamLabel(recommendedTeam)} thành {getBqlTeamLabel(team)}.
             </p>

@@ -97,7 +97,9 @@ export function TechnicianTaskQueuePage() {
               <div className="flex flex-wrap items-center gap-2">
                 <PriorityBadge priority={heroTask.priority} />
                 <TaskStatusBadge status={heroTask.status} />
-                <Provenance tone="human">Human-approved assignment</Provenance>
+                <Provenance tone="human">
+                  {getProvenanceLabel("Human-approved assignment")}
+                </Provenance>
               </div>
               <h2 className="mt-4 text-xl font-bold text-slate-950">
                 {getTechnicianTaskTitle(heroTask.title)}
@@ -263,7 +265,9 @@ export function TechnicianExecutionPage() {
           <div className="flex flex-wrap items-center gap-2">
             <PriorityBadge priority={task.priority} />
             <TaskStatusBadge status={task.status} />
-            <Provenance tone="human">Human-approved assignment</Provenance>
+            <Provenance tone="human">
+              {getProvenanceLabel("Human-approved assignment")}
+            </Provenance>
           </div>
         </div>
         <div className="grid border-t border-slate-200 bg-slate-50/70 sm:grid-cols-3">
@@ -451,7 +455,9 @@ export function TechnicianExecutionPage() {
                         />
                       </dl>
                       <div className="mt-3">
-                        <Provenance tone="technician">Technician action</Provenance>
+                        <Provenance tone="technician">
+                          {getProvenanceLabel("Technician action")}
+                        </Provenance>
                       </div>
                     </div>
                     {!showResolutionForm && (
@@ -644,7 +650,7 @@ function ResolutionResult({ task, onQueue }: { task: TechnicianTask; onQueue: ()
         </p>
       </div>
       <div className="p-5">
-        <Provenance tone="technician">Technician action</Provenance>
+        <Provenance tone="technician">{getProvenanceLabel("Technician action")}</Provenance>
         <dl className="mt-3">
           <DetailRow label="Trạng thái">
             <TaskStatusBadge status={task.status} />
