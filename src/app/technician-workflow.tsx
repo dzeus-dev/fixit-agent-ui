@@ -24,8 +24,17 @@ import {
 import { useTechnicianTasks } from "./technician-task-state";
 import {
   formatSlaText,
+  getAffectedAreaLabel,
+  getBqlIncidentTitle,
+  getBqlLocationLabel,
+  getBqlRelativeTime,
+  getBqlTeamLabel,
+  getBqlTicketIssue,
   getProvenanceLabel,
   getResolutionStatusLabel,
+  getTechnicianChecklistLabel,
+  getTechnicianEscalationReasonLabel,
+  getTechnicianTaskTitle,
   getTaskStatusLabel,
   uiLabels,
 } from "./ui-language";
@@ -62,10 +71,14 @@ export function TechnicianTaskQueuePage() {
     <>
       <div className="mb-6">
         <p className="text-xs font-bold uppercase tracking-[0.12em] text-blue-600">
-          Technician workspace
+          Không gian làm việc của nhân viên kỹ thuật
         </p>
-        <h1 className="mt-1 text-2xl font-bold tracking-[-0.035em] text-slate-950">My Tasks</h1>
-        <p className="mt-1.5 text-sm text-slate-500">Today’s operational assignments</p>
+        <h1 className="mt-1 text-2xl font-bold tracking-[-0.035em] text-slate-950">
+          {uiLabels.titles.tasks}
+        </h1>
+        <p className="mt-1.5 text-sm text-slate-500">
+          Các công việc đã được BQL phân công cho nhân viên kỹ thuật.
+        </p>
       </div>
 
       <section aria-labelledby="priority-task">
@@ -74,9 +87,9 @@ export function TechnicianTaskQueuePage() {
             id="priority-task"
             className="text-xs font-bold uppercase tracking-[0.1em] text-slate-500"
           >
-            Priority assignment
+            Công việc ưu tiên
           </h2>
-          <span className="text-xs text-slate-400">Execution queue</span>
+          <span className="text-xs text-slate-400">Danh sách thực hiện</span>
         </div>
         <Card className="overflow-hidden border-red-200">
           <div className="grid lg:grid-cols-[minmax(0,1fr)_280px]">
@@ -86,31 +99,36 @@ export function TechnicianTaskQueuePage() {
                 <TaskStatusBadge status={heroTask.status} />
                 <Provenance tone="human">Human-approved assignment</Provenance>
               </div>
-              <h2 className="mt-4 text-xl font-bold text-slate-950">{heroTask.title}</h2>
+              <h2 className="mt-4 text-xl font-bold text-slate-950">
+                {getTechnicianTaskTitle(heroTask.title)}
+              </h2>
               <p className="mt-2 flex items-center gap-1.5 text-sm text-slate-500">
-                <MapPin size={15} /> {heroTask.location}
+                <MapPin size={15} /> {getBqlLocationLabel(heroTask.location)}
               </p>
               <p className="mt-4 text-sm font-semibold text-slate-800">
-                {heroTask.incidentId} · {heroTask.incidentTitle}
+                {heroTask.incidentId} · {getBqlIncidentTitle(heroTask.incidentTitle)}
               </p>
               <p className="mt-1 text-xs text-slate-500">
-                {heroTask.sourceTicketId} · 6 related resident reports
+                {heroTask.sourceTicketId} · 6 phản ánh liên quan
               </p>
             </div>
             <div className="border-t border-slate-200 bg-slate-50/70 p-5 lg:border-l lg:border-t-0">
-              <QueueFact label="Assigned team" value={heroTask.assignedTeam} />
-              <QueueFact label="Assignment source" value="BQL-approved routing" />
+              <QueueFact label="Đội kỹ thuật" value={getBqlTeamLabel(heroTask.assignedTeam)} />
+              <QueueFact
+                label="Nguồn phân công"
+                value={getProvenanceLabel("BQL-approved routing")}
+              />
               <QueueFact label={uiLabels.sla.label} value={formatSlaText(heroTask.sla)} />
               {heroTask.status === "Assigned" ? (
                 <Button className="mt-4 w-full" onClick={() => startAndOpen(heroTask)}>
-                  <Play size={15} /> Start task
+                  <Play size={15} /> Bắt đầu xử lý
                 </Button>
               ) : (
                 <Button
                   className="mt-4 w-full"
                   onClick={() => navigate(`/technician/tasks/${heroTask.id}`)}
                 >
-                  Open task <ArrowRight size={15} />
+                  Mở công việc <ArrowRight size={15} />
                 </Button>
               )}
             </div>
@@ -124,9 +142,9 @@ export function TechnicianTaskQueuePage() {
             id="other-tasks"
             className="text-xs font-bold uppercase tracking-[0.1em] text-slate-500"
           >
-            Other assignments
+            Công việc khác
           </h2>
-          <span className="text-xs text-slate-400">{otherTasks.length} tasks</span>
+          <span className="text-xs text-slate-400">{otherTasks.length} công việc</span>
         </div>
         <div className="grid gap-4 lg:grid-cols-2">
           {otherTasks.map((task) => (
@@ -137,9 +155,11 @@ export function TechnicianTaskQueuePage() {
                     <PriorityBadge priority={task.priority} />
                     <TaskStatusBadge status={task.status} />
                   </div>
-                  <h3 className="mt-3 truncate text-sm font-bold text-slate-900">{task.title}</h3>
+                  <h3 className="mt-3 truncate text-sm font-bold text-slate-900">
+                    {getTechnicianTaskTitle(task.title)}
+                  </h3>
                   <p className="mt-1 text-xs text-slate-500">
-                    {task.incidentId} · {task.location}
+                    {task.incidentId} · {getBqlLocationLabel(task.location)}
                   </p>
                 </div>
                 <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-blue-50 text-blue-600">
@@ -148,14 +168,18 @@ export function TechnicianTaskQueuePage() {
               </div>
               <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-4">
                 <div>
-                  <p className="text-xs font-semibold text-slate-700">{task.assignedTeam}</p>
-                  <p className="mt-1 text-[11px] text-slate-400">BQL-approved routing</p>
+                  <p className="text-xs font-semibold text-slate-700">
+                    {getBqlTeamLabel(task.assignedTeam)}
+                  </p>
+                  <p className="mt-1 text-[11px] text-slate-400">
+                    {getProvenanceLabel("BQL-approved routing")}
+                  </p>
                 </div>
                 <Button
                   variant="secondary"
                   onClick={() => navigate(`/technician/tasks/${task.id}`)}
                 >
-                  Open task
+                  Mở công việc
                 </Button>
               </div>
             </Card>
@@ -218,7 +242,7 @@ export function TechnicianExecutionPage() {
         to="/technician/tasks"
         className="mb-4 inline-flex items-center gap-2 text-sm font-semibold text-slate-500 hover:text-slate-900"
       >
-        <ArrowLeft size={16} /> Back to task queue
+        <ArrowLeft size={16} /> Quay lại danh sách công việc
       </Link>
 
       <Card className="mb-6 overflow-hidden border-slate-300">
@@ -230,21 +254,24 @@ export function TechnicianExecutionPage() {
               <span className="font-mono text-xs font-bold text-slate-500">{task.id}</span>
             </div>
             <h1 className="mt-2 text-2xl font-bold tracking-[-0.035em] text-slate-950">
-              {task.title}
+              {getTechnicianTaskTitle(task.title)}
             </h1>
             <p className="mt-2 flex items-center gap-1.5 text-sm text-slate-500">
-              <MapPin size={15} /> {task.location}
+              <MapPin size={15} /> {getBqlLocationLabel(task.location)}
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <PriorityBadge priority={task.priority} />
             <TaskStatusBadge status={task.status} />
-            <Provenance tone="human">BQL-approved assignment</Provenance>
+            <Provenance tone="human">Human-approved assignment</Provenance>
           </div>
         </div>
         <div className="grid border-t border-slate-200 bg-slate-50/70 sm:grid-cols-3">
-          <HeaderFact label="Assigned team" value={task.assignedTeam} />
-          <HeaderFact label="Assignment source" value="BQL-approved routing" />
+          <HeaderFact label="Đội kỹ thuật" value={getBqlTeamLabel(task.assignedTeam)} />
+          <HeaderFact
+            label="Nguồn phân công"
+            value={getProvenanceLabel("BQL-approved routing")}
+          />
           <HeaderFact label={uiLabels.sla.label} value={formatSlaText(task.sla)} />
         </div>
       </Card>
@@ -252,32 +279,37 @@ export function TechnicianExecutionPage() {
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_370px]">
         <main className="space-y-6">
           <Card className="overflow-hidden">
-            <SectionHeading title="Incident Context" meta="Read-only orchestration context" />
+            <SectionHeading title="Bối cảnh sự cố" meta="Chỉ xem, không chỉnh sửa" />
             <div className="grid gap-px bg-slate-200 sm:grid-cols-2 lg:grid-cols-3">
-              <ContextFact label="Incident" value={incident.title} />
-              <ContextFact label="Official location" value={incident.officialLocation} />
+              <ContextFact label="Sự cố" value={getBqlIncidentTitle(incident.title)} />
               <ContextFact
-                label="Correlated affected area"
-                value={incident.correlatedAffectedArea ?? incident.officialLocation}
+                label="Vị trí ghi nhận"
+                value={getBqlLocationLabel(incident.officialLocation)}
+              />
+              <ContextFact
+                label="Phạm vi ảnh hưởng"
+                value={getBqlLocationLabel(
+                  incident.correlatedAffectedArea ?? incident.officialLocation,
+                )}
                 provenance="Correlation-derived"
               />
-              <ContextFact label="Related reports" value={String(incident.tickets)} />
-              <ContextFact label="Priority" value={incident.priority} />
-              <ContextFact label="SLA state" value={formatSlaText(task.sla)} />
+              <ContextFact label="Các phản ánh liên quan" value={String(incident.tickets)} />
+              <ContextFact label="Mức độ ưu tiên" value={uiLabels.priorities[incident.priority]} />
+              <ContextFact label="Trạng thái SLA" value={formatSlaText(task.sla)} />
             </div>
             <div className="flex items-start gap-3 border-t border-slate-100 bg-slate-50 px-5 py-4">
               <ShieldAlert size={17} className="mt-0.5 shrink-0 text-slate-500" />
               <p className="text-xs leading-5 text-slate-500">
-                Priority, assigned team, and incident scope are read-only. BQL remains responsible
-                for routing and final incident closure.
+                Thông tin này chỉ để tham khảo. BQL chịu trách nhiệm điều phối và quyết định đóng sự
+                cố.
               </p>
             </div>
           </Card>
 
           <Card className="overflow-hidden">
             <SectionHeading
-              title="Resident reports supporting this task"
-              meta={`${supportingReports.length} of ${incident.tickets} reports shown`}
+              title="Phản ánh của cư dân liên quan đến công việc này"
+              meta={`Hiển thị ${supportingReports.length} trong ${incident.tickets} phản ánh`}
             />
             <div className="divide-y divide-slate-100">
               {supportingReports.map((report) => (
@@ -287,14 +319,20 @@ export function TechnicianExecutionPage() {
                 >
                   <div>
                     <p className="font-mono text-xs font-bold text-slate-600">{report.id}</p>
-                    <p className="mt-1 text-[11px] text-slate-400">{report.created}</p>
+                    <p className="mt-1 text-[11px] text-slate-400">
+                      {getBqlRelativeTime(report.created)}
+                    </p>
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-slate-900">{report.issue}</p>
-                    <p className="mt-1 text-xs text-slate-500">{report.location}</p>
+                    <p className="text-sm font-semibold text-slate-900">
+                      {getBqlTicketIssue(report.issue)}
+                    </p>
+                    <p className="mt-1 text-xs text-slate-500">
+                      {getBqlLocationLabel(report.location)}
+                    </p>
                   </div>
                   <span className="text-[10px] font-bold uppercase tracking-[0.08em] text-slate-400">
-                    Operational evidence
+                    Bằng chứng phục vụ xử lý
                   </span>
                 </div>
               ))}
@@ -303,8 +341,8 @@ export function TechnicianExecutionPage() {
 
           <Card className="overflow-hidden">
             <SectionHeading
-              title="Initial Inspection"
-              meta={`${checkedItems.length}/${checklistItems.length} completed`}
+              title="Kiểm tra ban đầu"
+              meta={`${checkedItems.length}/${checklistItems.length} mục hoàn tất`}
             />
             <div className="divide-y divide-slate-100">
               {checklistItems.map((item) => {
@@ -326,7 +364,7 @@ export function TechnicianExecutionPage() {
                         checked ? "text-slate-400 line-through" : "text-slate-800"
                       }`}
                     >
-                      {item}
+                      {getTechnicianChecklistLabel(item)}
                     </span>
                   </label>
                 );
@@ -338,35 +376,35 @@ export function TechnicianExecutionPage() {
             <div className="flex items-start gap-3 bg-amber-50 p-5">
               <ShieldAlert size={20} className="mt-0.5 shrink-0 text-amber-700" />
               <div>
-                <h2 className="text-sm font-bold text-amber-950">Safety note</h2>
+                <h2 className="text-sm font-bold text-amber-950">Lưu ý an toàn</h2>
                 <p className="mt-1 text-sm leading-6 text-amber-900">
-                  If active water reaches electrical equipment, stop work and escalate immediately.
-                  Do not perform unsafe intervention.
+                  Nếu nước đang rò rỉ tới thiết bị điện, hãy dừng công việc và báo ngay theo quy trình
+                  hiện hành. Không thực hiện thao tác không an toàn.
                 </p>
                 <p className="mt-2 text-[11px] text-amber-700">
-                  Static safety reminder · No automated safety decision
+                  Nhắc nhở cố định · Hệ thống không tự đưa ra quyết định an toàn
                 </p>
               </div>
             </div>
           </Card>
 
           <Card className="overflow-hidden">
-            <SectionHeading title="Information Provenance" meta="Read-only context" />
+            <SectionHeading title="Nguồn thông tin" meta="Bối cảnh chỉ để tham khảo" />
             <div className="grid gap-px bg-slate-200 sm:grid-cols-3">
               <ProvenanceFact
-                label="Likely issue"
-                value="Active water leak"
+                label="Nhận định tham khảo"
+                value="Rò rỉ nước đang diễn ra"
                 provenance="AI-generated"
                 tone="ai"
               />
               <ProvenanceFact
-                label="Official location"
-                value={incident.officialLocation}
+                label="Vị trí ghi nhận"
+                value={getBqlLocationLabel(incident.officialLocation)}
                 provenance="System record"
               />
               <ProvenanceFact
-                label="Assigned team"
-                value={task.assignedTeam}
+                label="Đội được phân công"
+                value={getBqlTeamLabel(task.assignedTeam)}
                 provenance="Human decision"
                 tone="human"
               />
@@ -381,20 +419,20 @@ export function TechnicianExecutionPage() {
             <Card accent className="overflow-hidden">
               <div className="border-b border-blue-100 bg-blue-50/60 p-5">
                 <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-blue-600">
-                  Current task
+                  Công việc hiện tại
                 </p>
                 <h2 className="mt-1.5 text-lg font-bold text-slate-950">
-                  {task.status === "Assigned" ? "Ready to start" : "Work in progress"}
+                  {task.status === "Assigned" ? "Sẵn sàng bắt đầu" : "Đang xử lý"}
                 </h2>
               </div>
               <div className="p-5">
                 {task.status === "Assigned" ? (
                   <>
                     <p className="text-sm leading-6 text-slate-500">
-                      Start the task when you are ready to begin the initial inspection.
+                      Bắt đầu xử lý khi bạn sẵn sàng tiến hành kiểm tra ban đầu.
                     </p>
                     <Button className="mt-5 w-full" onClick={() => startTask(task.id)}>
-                      <Play size={15} /> Start task
+                      <Play size={15} /> Bắt đầu xử lý
                     </Button>
                   </>
                 ) : (
@@ -402,12 +440,15 @@ export function TechnicianExecutionPage() {
                     <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4">
                       <div className="flex items-center gap-2">
                         <CheckCircle2 size={17} className="text-emerald-700" />
-                        <p className="text-sm font-bold text-emerald-900">Task started</p>
+                        <p className="text-sm font-bold text-emerald-900">Đã bắt đầu công việc</p>
                       </div>
                       <dl className="mt-3 space-y-2 text-xs">
-                        <StateRow label="Status" value={getTaskStatusLabel("In Progress")} />
-                        <StateRow label="Started by" value="Technician" />
-                        <StateRow label="Time" value={task.startedAt ?? "Prototype state"} />
+                        <StateRow label="Trạng thái" value={getTaskStatusLabel("In Progress")} />
+                        <StateRow label="Người bắt đầu" value={uiLabels.roles.technician} />
+                        <StateRow
+                          label="Thời điểm"
+                          value={getBqlRelativeTime(task.startedAt ?? "Prototype state")}
+                        />
                       </dl>
                       <div className="mt-3">
                         <Provenance tone="technician">Technician action</Provenance>
@@ -415,7 +456,7 @@ export function TechnicianExecutionPage() {
                     </div>
                     {!showResolutionForm && (
                       <Button className="mt-5 w-full" onClick={() => setShowResolutionForm(true)}>
-                        <FileText size={15} /> Record resolution
+                        <FileText size={15} /> Ghi nhận kết quả xử lý
                       </Button>
                     )}
                   </>
@@ -450,14 +491,14 @@ export function TechnicianExecutionPage() {
                 {uiLabels.sla.label} · {formatSlaText(task.sla)}
               </p>
             </div>
-            <p className="mt-1 text-xs text-slate-500">Mock operational clock</p>
+            <p className="mt-1 text-xs text-slate-500">Thời gian SLA mô phỏng</p>
           </Card>
 
           <Link
             to={`/bql/incidents/${task.incidentId}`}
             className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50"
           >
-            View incident <ArrowRight size={15} />
+            Xem sự cố <ArrowRight size={15} />
           </Link>
         </aside>
       </div>
@@ -500,58 +541,66 @@ function ResolutionForm({
   return (
     <div className="mt-5 space-y-4 border-t border-slate-100 pt-5">
       <label className="form-label">
-        Resolution status
+        Trạng thái xử lý
         <select
           className="form-input"
           value={resolutionStatus}
           onChange={(event) => setResolutionStatus(event.target.value as ResolutionStatus)}
         >
-          <option>Resolved</option>
-          <option>Unable to resolve</option>
-          <option>Requires follow-up</option>
+          <option value="Resolved">{getResolutionStatusLabel("Resolved", "technician")}</option>
+          <option value="Unable to resolve">
+            {getResolutionStatusLabel("Unable to resolve", "technician")}
+          </option>
+          <option value="Requires follow-up">
+            {getResolutionStatusLabel("Requires follow-up", "technician")}
+          </option>
         </select>
       </label>
       <label className="form-label">
-        What was done?
+        Mô tả công việc đã thực hiện
         <textarea
           className="form-input min-h-24 resize-none"
           value={resolutionNote}
           onChange={(event) => setResolutionNote(event.target.value)}
-          placeholder="Describe the action taken and the observed result."
+          placeholder="Mô tả những gì đã thực hiện và kết quả ghi nhận được."
         />
       </label>
       <label className="form-label">
-        Cause / finding <span className="font-normal text-slate-400">(optional)</span>
+        Ghi nhận hiện trạng <span className="font-normal text-slate-400">(không bắt buộc)</span>
         <textarea
           className="form-input min-h-20 resize-none"
           value={finding}
           onChange={(event) => setFinding(event.target.value)}
-          placeholder="Visible leak identified near service riser."
+          placeholder="Mô tả tình trạng có thể quan sát tại hiện trường."
         />
       </label>
       <label className="form-label">
-        Affected area confirmed
+        Xác nhận phạm vi ảnh hưởng
         <select
           className="form-input"
           value={affectedArea}
           onChange={(event) => setAffectedArea(event.target.value as AffectedAreaConfirmation)}
         >
-          <option>Yes</option>
-          <option>No</option>
-          <option>Needs further inspection</option>
+          <option value="Yes">{getAffectedAreaLabel("Yes")}</option>
+          <option value="No">{getAffectedAreaLabel("No")}</option>
+          <option value="Needs further inspection">
+            {getAffectedAreaLabel("Needs further inspection")}
+          </option>
         </select>
       </label>
       {requiresEscalation && (
         <label className="form-label">
-          Reason
+          Lý do cần xử lý tiếp
           <select
             className="form-input"
             value={escalationReason}
             onChange={(event) => setEscalationReason(event.target.value)}
           >
-            <option value="">Select a reason</option>
+            <option value="">Chọn lý do</option>
             {escalationReasons.map((reason) => (
-              <option key={reason}>{reason}</option>
+              <option key={reason} value={reason}>
+                {getTechnicianEscalationReasonLabel(reason)}
+              </option>
             ))}
           </select>
         </label>
@@ -559,15 +608,15 @@ function ResolutionForm({
       {submitted && !valid && (
         <p className="text-xs font-semibold text-red-600" role="alert">
           {requiresEscalation
-            ? "Select a reason before submitting for review."
-            : "Add a resolution note before marking the task resolved."}
+            ? "Chọn lý do trước khi gửi BQL xem xét."
+            : "Bổ sung mô tả kết quả xử lý trước khi ghi nhận hoàn tất công việc."}
         </p>
       )}
       <Button className="w-full" onClick={onSubmit}>
-        {requiresEscalation ? "Submit for review" : "Mark resolved"}
+        {requiresEscalation ? "Gửi BQL xem xét" : "Ghi nhận hoàn tất công việc"}
       </Button>
       <Button className="w-full" variant="ghost" onClick={onCancel}>
-        Cancel
+        Hủy
       </Button>
     </div>
   );
@@ -586,43 +635,60 @@ function ResolutionResult({ task, onQueue }: { task: TechnicianTask; onQueue: ()
           {resolved ? <CheckCircle2 size={20} /> : <AlertTriangle size={20} />}
         </span>
         <h2 className="mt-3 text-lg font-bold text-slate-950">
-          {resolved ? "Task resolved" : "Task requires follow-up"}
+          {resolved ? "Đã ghi nhận hoàn tất" : "Cần xử lý tiếp"}
         </h2>
         <p className="mt-1 text-sm text-slate-600">
           {resolved
-            ? "Resolution recorded by the technician."
-            : "Submitted for BQL review. No reassignment was created."}
+            ? "Kết quả xử lý đã được nhân viên kỹ thuật ghi nhận."
+            : "Đã gửi BQL xem xét. Chưa tạo phân công mới."}
         </p>
       </div>
       <div className="p-5">
         <Provenance tone="technician">Technician action</Provenance>
         <dl className="mt-3">
-          <DetailRow label="Status">
+          <DetailRow label="Trạng thái">
             <TaskStatusBadge status={task.status} />
           </DetailRow>
-          <DetailRow label="Resolved by">Daniel Kim</DetailRow>
-          <DetailRow label="Resolution">
-            {task.resolutionStatus ? getResolutionStatusLabel(task.resolutionStatus) : undefined}
+          <DetailRow label="Người ghi nhận">Daniel Kim</DetailRow>
+          <DetailRow label="Kết quả xử lý">
+            {task.resolutionStatus
+              ? getResolutionStatusLabel(task.resolutionStatus, "technician")
+              : undefined}
           </DetailRow>
-          <DetailRow label="Resolution note">{task.resolutionNote || "Not provided"}</DetailRow>
-          <DetailRow label="Finding">{task.finding || "Not provided"}</DetailRow>
-          <DetailRow label="Affected area">{task.affectedAreaConfirmed}</DetailRow>
+          <DetailRow label="Mô tả công việc đã thực hiện">
+            {task.resolutionNote || "Chưa được cung cấp"}
+          </DetailRow>
+          <DetailRow label="Ghi nhận hiện trạng">
+            {task.finding || "Chưa được cung cấp"}
+          </DetailRow>
+          <DetailRow label="Phạm vi ảnh hưởng">
+            {task.affectedAreaConfirmed
+              ? getAffectedAreaLabel(task.affectedAreaConfirmed)
+              : "Chưa được cung cấp"}
+          </DetailRow>
           {task.escalationReason && (
-            <DetailRow label="Review reason">{task.escalationReason}</DetailRow>
+            <DetailRow label="Lý do cần xử lý tiếp">
+              {getTechnicianEscalationReasonLabel(task.escalationReason)}
+            </DetailRow>
           )}
-          <DetailRow label="Timestamp">{task.resolvedAt}</DetailRow>
+          <DetailRow label="Thời điểm">
+            {task.resolvedAt ? getBqlRelativeTime(task.resolvedAt) : "Chưa được cung cấp"}
+          </DetailRow>
         </dl>
         <div className="mt-4 rounded-lg border border-indigo-100 bg-indigo-50/50 p-3">
           <p className="text-xs font-bold text-indigo-900">
-            Incident status: Resolution pending BQL review
+            {resolved
+              ? "Bước tiếp theo: BQL xem xét kết quả xử lý"
+              : "Bước tiếp theo: BQL xem xét yêu cầu xử lý tiếp"}
           </p>
           <p className="mt-1 text-xs leading-5 text-indigo-700">
-            Resolving this task does not close the incident. BQL remains responsible for final
-            operational review and closure.
+            {resolved
+              ? "Ghi nhận hoàn tất công việc không đóng sự cố. BQL sẽ xem xét kết quả và quyết định việc đóng sự cố."
+              : "Công việc chưa thể hoàn tất. BQL sẽ xem xét lý do và thông tin đã ghi nhận để quyết định bước tiếp theo."}
           </p>
         </div>
         <Button className="mt-5 w-full" onClick={onQueue}>
-          Return to task queue
+          Quay lại danh sách công việc
         </Button>
       </div>
     </Card>

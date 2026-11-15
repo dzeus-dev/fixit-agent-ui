@@ -10,6 +10,7 @@ import type {
 export type UiRole = "bql" | "technician" | "resident";
 export type StatusContext = "incident" | "ticket";
 export type SlaState = "On track" | "At risk" | "Breached";
+export type ResolutionLabelContext = "bql" | "technician";
 export type CorrelationStatus = "Linked" | "Candidate" | "Excluded";
 export type AssessmentLevel = "High" | "Medium" | "Low";
 
@@ -57,7 +58,7 @@ export const uiLabels = {
     soon: "Sắp có",
     settings: "Cài đặt",
     workspace: "Không gian làm việc",
-    tasks: "Công việc của tôi",
+    tasks: "Công việc được phân công",
     residentPortal: "Cổng cư dân",
     reports: "Phản ánh của tôi",
     trackReport: "Theo dõi phản ánh",
@@ -70,7 +71,7 @@ export const uiLabels = {
     operationsDashboard: "Tổng quan vận hành",
     residentTickets: "Phản ánh của cư dân",
     incidentQueue: "Danh sách sự cố",
-    tasks: "Công việc của tôi",
+    tasks: "Công việc được phân công",
     report: "Gửi phản ánh",
     correlationReview: "Xem xét liên kết phản ánh",
     routingRecommendation: "Đề xuất điều phối",
@@ -111,7 +112,7 @@ export const uiLabels = {
   } satisfies Record<AffectedAreaConfirmation, string>,
   taskStatuses: {
     Assigned: "Đã phân công",
-    "In Progress": "Đang thực hiện",
+    "In Progress": "Đang xử lý",
     Resolved: "Đã ghi nhận hoàn tất",
     "Needs Follow-up": "Cần xử lý tiếp",
   } satisfies Record<TaskStatus, string>,
@@ -151,6 +152,7 @@ export const uiLabels = {
     "Human override": "BQL điều chỉnh đề xuất",
     "Human-approved assignment": "Phân công được BQL phê duyệt",
     "BQL-approved assignment": "Phân công được BQL phê duyệt",
+    "BQL-approved routing": "Phân công được BQL phê duyệt",
     "Technician action": "Nhân viên kỹ thuật ghi nhận",
     "Correlation-derived": "Suy ra từ liên kết phản ánh",
     "Resident-provided information": "Thông tin bạn cung cấp",
@@ -219,6 +221,8 @@ export const uiLabels = {
       "Just now": "Vừa xong",
       "Just now · prototype state": "Vừa xong · trạng thái bản mẫu",
       Now: "Vừa xong",
+      "Earlier today · prototype state": "Hôm nay · trạng thái bản mẫu",
+      "Prototype state": "Trạng thái bản mẫu",
       "1 hr ago": "1 giờ trước",
       "2 hrs ago": "2 giờ trước",
       "8 min ago": "8 phút trước",
@@ -232,6 +236,31 @@ export const uiLabels = {
       Other: "Lý do khác",
       "BQL approved the recommended routing.": "BQL đã phê duyệt đề xuất điều phối.",
     },
+  },
+  technician: {
+    taskTitles: {
+      "Investigate active water leak": "Kiểm tra và xử lý rò rỉ nước đang xảy ra",
+      "Inspect corridor electrical circuit": "Kiểm tra mạch điện hành lang",
+      "Test and recalibrate door sensor": "Kiểm tra và hiệu chỉnh lại cảm biến cửa",
+    },
+    checklistItems: {
+      "Confirm active leak": "Xác nhận vị trí nước đang rò rỉ",
+      "Identify visible source": "Xác định vị trí có thể quan sát thấy nguồn rò rỉ",
+      "Check affected area": "Kiểm tra phạm vi ảnh hưởng",
+      "Assess immediate property damage": "Đánh giá hư hại tài sản hiện có",
+      "Check nearby units / common area": "Kiểm tra các căn hộ lân cận / khu vực chung",
+    },
+    escalationReasons: {
+      "Requires specialist": "Cần nhân viên chuyên môn",
+      "Access unavailable": "Chưa thể tiếp cận vị trí",
+      "Source not identified": "Chưa xác định được điểm cần xử lý",
+      "Safety concern": "Có rủi ro an toàn",
+      "Requires BQL review": "Cần BQL xem xét",
+      Other: "Lý do khác",
+    },
+    resolutionStatusOverrides: {
+      "Unable to resolve": "Chưa thể xử lý",
+    } satisfies Partial<Record<ResolutionStatus, string>>,
   },
 } as const;
 
@@ -252,8 +281,37 @@ export function getAffectedAreaLabel(value: AffectedAreaConfirmation) {
   return uiLabels.affectedAreaConfirmations[value];
 }
 
-export function getResolutionStatusLabel(status: ResolutionStatus) {
+export function getResolutionStatusLabel(
+  status: ResolutionStatus,
+  context: ResolutionLabelContext = "bql",
+) {
+  if (context === "technician") {
+    const technicianOverrides = uiLabels.technician.resolutionStatusOverrides as Partial<
+      Record<ResolutionStatus, string>
+    >;
+    const technicianLabel = technicianOverrides[status];
+    if (technicianLabel) return technicianLabel;
+  }
+
   return uiLabels.resolutionStatuses[status];
+}
+
+export function getTechnicianTaskTitle(title: string) {
+  return (
+    uiLabels.technician.taskTitles[title as keyof typeof uiLabels.technician.taskTitles] ?? title
+  );
+}
+
+export function getTechnicianChecklistLabel(item: string) {
+  return uiLabels.technician.checklistItems[
+    item as keyof typeof uiLabels.technician.checklistItems
+  ] ?? item;
+}
+
+export function getTechnicianEscalationReasonLabel(reason: string) {
+  return uiLabels.technician.escalationReasons[
+    reason as keyof typeof uiLabels.technician.escalationReasons
+  ] ?? reason;
 }
 
 export function getResidentStatusLabel(status: ResidentStatus) {
