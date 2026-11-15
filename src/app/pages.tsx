@@ -40,7 +40,17 @@ import {
   TicketMark,
 } from "./components";
 import { incidents, tickets, type Incident, type Ticket as TicketType } from "./data";
-import { formatSlaText, getSlaStateLabel, uiLabels } from "./ui-language";
+import {
+  formatSlaText,
+  getBqlCategoryLabel,
+  getBqlIncidentTitle,
+  getBqlLocationLabel,
+  getBqlRelativeTime,
+  getBqlTeamLabel,
+  getBqlTicketIssue,
+  getSlaStateLabel,
+  uiLabels,
+} from "./ui-language";
 import { IncidentIntelligencePage } from "./incident-detail";
 import { useOperationalState } from "./operational-state";
 import { ResidentIssueStatusPage, ResidentReportPage } from "./resident-workflow";
@@ -51,24 +61,24 @@ export function EntryPage() {
   const roles = [
     {
       title: uiLabels.roles.bqlIntro,
-      description: "Triage reports, coordinate incidents, and approve operational decisions.",
+      description: "Tiếp nhận phản ánh, điều phối sự cố và phê duyệt các quyết định vận hành.",
       to: "/bql/dashboard",
-      cta: "Enter BQL Console",
+      cta: "Vào trang vận hành BQL",
       icon: <Gauge size={22} />,
       primary: true,
     },
     {
       title: uiLabels.roles.technician,
-      description: "Review assigned work, capture evidence, and update task progress.",
+      description: "Xem công việc được phân công, ghi nhận bằng chứng và cập nhật tiến độ.",
       to: "/technician/tasks",
-      cta: "Enter Technician Workspace",
+      cta: "Vào không gian làm việc kỹ thuật",
       icon: <HardHat size={22} />,
     },
     {
       title: uiLabels.roles.resident,
-      description: "Report an issue and follow its status through resolution.",
+      description: "Gửi phản ánh và theo dõi quá trình xử lý.",
       to: "/resident/report",
-      cta: "Enter Resident Portal",
+      cta: "Vào cổng cư dân",
       icon: <Building2 size={22} />,
     },
   ];
@@ -80,20 +90,20 @@ export function EntryPage() {
           to="/login"
           className="rounded-lg border border-white/15 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:bg-white/10"
         >
-          Demo sign in
+          Đăng nhập demo
         </Link>
       </header>
       <main className="mx-auto flex max-w-7xl flex-col px-6 pb-14 pt-16 lg:px-10 lg:pt-24">
         <div className="mb-14 max-w-3xl">
           <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-indigo-300/20 bg-indigo-400/10 px-3 py-1.5 text-xs font-semibold text-indigo-200">
-            <Sparkles size={14} /> Incident orchestration, with people in control
+            <Sparkles size={14} /> Điều phối sự cố, con người giữ quyền quyết định
           </div>
           <h1 className="text-5xl font-bold leading-[1.08] tracking-[-0.055em] sm:text-6xl">
-            Turn resident reports into <span className="text-indigo-300">coordinated action.</span>
+            Biến phản ánh của cư dân thành <span className="text-indigo-300">hành động phối hợp.</span>
           </h1>
           <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-400">
-            FixIt Agent helps property operations teams correlate tickets, manage incidents, and
-            make faster, evidence-led decisions.
+            FixIt Agent hỗ trợ đội ngũ vận hành liên kết các phản ánh, quản lý sự cố và đưa ra quyết
+            định nhanh hơn dựa trên bằng chứng.
           </p>
         </div>
         <div className="grid gap-4 lg:grid-cols-3">
@@ -123,13 +133,13 @@ export function EntryPage() {
         </div>
         <div className="mt-12 flex flex-wrap items-center gap-x-8 gap-y-3 border-t border-white/10 pt-6 text-xs font-medium text-slate-500">
           <span className="flex items-center gap-2">
-            <ShieldCheck size={15} /> Human approval built in
+            <ShieldCheck size={15} /> BQL phê duyệt trước khi phân công
           </span>
           <span className="flex items-center gap-2">
-            <CircleDot size={15} /> Operational context preserved
+            <CircleDot size={15} /> Giữ nguyên bối cảnh vận hành
           </span>
           <span className="flex items-center gap-2">
-            <FileCheck2 size={15} /> Evidence-led workflows
+            <FileCheck2 size={15} /> Quy trình dựa trên bằng chứng
           </span>
         </div>
       </main>
@@ -156,15 +166,15 @@ export function LoginPage() {
         <Brand />
         <div className="my-auto w-full max-w-md self-center py-12">
           <p className="mb-2 text-xs font-bold uppercase tracking-[0.15em] text-indigo-600">
-            Secure workspace
+            Không gian làm việc mô phỏng
           </p>
-          <h1 className="text-3xl font-bold tracking-[-0.04em] text-slate-950">Welcome back</h1>
+          <h1 className="text-3xl font-bold tracking-[-0.04em] text-slate-950">Chào mừng quay lại</h1>
           <p className="mt-2 text-sm leading-6 text-slate-500">
-            Sign in to continue to the FixIt Agent prototype.
+            Đăng nhập demo để tiếp tục sử dụng bản mẫu FixIt Agent.
           </p>
           <form className="mt-8 space-y-5" onSubmit={submit}>
             <label className="form-label">
-              Email address
+              Địa chỉ email
               <input
                 className="form-input"
                 type="email"
@@ -173,11 +183,11 @@ export function LoginPage() {
               />
             </label>
             <label className="form-label">
-              Password
+              Mật khẩu
               <input className="form-input" type="password" defaultValue="prototype" required />
             </label>
             <label className="form-label">
-              Demo role
+              Vai trò demo
               <select className="form-input" value={role} onChange={(e) => setRole(e.target.value)}>
                 <option value="bql">{uiLabels.roles.bqlIntro}</option>
                 <option value="technician">{uiLabels.roles.technician}</option>
@@ -185,11 +195,11 @@ export function LoginPage() {
               </select>
             </label>
             <Button className="w-full" type="submit">
-              Sign In <ArrowRight size={16} />
+              Đăng nhập <ArrowRight size={16} />
             </Button>
           </form>
           <p className="mt-6 text-center text-xs text-slate-400">
-            Prototype access only. No real authentication is performed.
+            Chỉ dùng để truy cập bản mẫu. Không thực hiện xác thực tài khoản thật.
           </p>
         </div>
       </div>
@@ -199,11 +209,11 @@ export function LoginPage() {
             <BrainCircuit size={24} />
           </span>
           <h2 className="text-4xl font-bold leading-tight tracking-[-0.045em]">
-            AI-assisted Incident Orchestration for Residential Operations
+            Điều phối sự cố có AI hỗ trợ cho công tác vận hành khu căn hộ
           </h2>
           <p className="mt-5 text-base leading-7 text-slate-400">
-            Move from fragmented reports to controlled, coordinated resolution—without removing
-            human judgment.
+            Kết nối các phản ánh rời rạc thành quy trình xử lý có phối hợp và kiểm soát, đồng thời
+            giữ nguyên quyền quyết định của con người.
           </p>
         </div>
       </div>
@@ -232,61 +242,61 @@ interface DashboardIncident {
 const dashboardIncidents: DashboardIncident[] = [
   {
     id: "INC-024",
-    title: "Water leak affecting multiple units",
-    location: "Tower A · Floor 12",
+    title: "Rò rỉ nước ảnh hưởng nhiều căn hộ",
+    location: "Tòa A · Tầng 12",
     priority: "Critical",
     status: "Pending Approval",
     tickets: 6,
     team: "Technical — Plumbing",
     slaState: "At risk",
     slaDetail: "1h 42m remaining",
-    nextAction: "Review the recommended plumbing assignment",
-    actionLabel: "Review approval",
+    nextAction: "Xem xét đề xuất điều phối đội cấp thoát nước",
+    actionLabel: "Xem phê duyệt",
     actionRoute: "/bql/incidents/INC-024/approval",
-    approvalReason: "Multiple units affected and active water leakage",
+    approvalReason: "Nhiều căn hộ bị ảnh hưởng và nước vẫn đang rò rỉ",
   },
   {
     id: "INC-025",
-    title: "Elevator failure",
-    location: "Tower B · Main elevator",
+    title: "Sự cố thang máy",
+    location: "Tòa B · Thang máy chính",
     priority: "Critical",
     status: "Assigned",
     tickets: 2,
     team: "Vertical Transport",
     slaState: "Breached",
     slaDetail: "12m over target",
-    nextAction: "Confirm response progress with the assigned team",
-    actionLabel: "Review incident",
+    nextAction: "Xác nhận tiến độ xử lý với đội được phân công",
+    actionLabel: "Xem sự cố",
     actionRoute: "/bql/incidents/INC-025",
   },
   {
     id: "INC-026",
-    title: "Electrical issue in common area",
-    location: "Tower A · Floor 8",
+    title: "Sự cố điện tại khu vực chung",
+    location: "Tòa A · Tầng 8",
     priority: "High",
     status: "In Progress",
     tickets: 2,
     team: "Technical — Electrical",
     slaState: "At risk",
     slaDetail: "54m remaining",
-    nextAction: "Review progress before the SLA enters breach",
-    actionLabel: "Open incident",
+    nextAction: "Kiểm tra tiến độ trước khi SLA quá hạn",
+    actionLabel: "Mở sự cố",
     actionRoute: "/bql/incidents/INC-026",
   },
   {
     id: "INC-027",
-    title: "HVAC temperature alert",
-    location: "Tower C · Floor 6",
+    title: "Cảnh báo nhiệt độ điều hòa",
+    location: "Tòa C · Tầng 6",
     priority: "Medium",
     status: "Pending Approval",
     tickets: 4,
     team: "Technical — HVAC",
     slaState: "On track",
     slaDetail: "5h 08m remaining",
-    nextAction: "Review the recommended HVAC assignment",
-    actionLabel: "Review routing",
+    nextAction: "Xem xét đề xuất điều phối đội điều hòa",
+    actionLabel: "Xem đề xuất điều phối",
     actionRoute: "/bql/incidents/INC-027/routing",
-    approvalReason: "Four reports indicate a shared floor-level HVAC issue",
+    approvalReason: "Bốn phản ánh cho thấy vấn đề điều hòa có thể ảnh hưởng cùng một tầng",
   },
 ];
 
@@ -384,12 +394,12 @@ function AttentionRow({
         <p className="mt-1.5 text-xs font-medium text-slate-500">{formatSlaText(item.slaDetail)}</p>
         <p className="mt-1 text-xs text-slate-500">
           <Ticket size={12} className="mr-1 inline" />
-          {item.tickets} related {item.tickets === 1 ? "report" : "reports"}
+          {item.tickets} phản ánh liên quan
         </p>
       </div>
       <div className="rounded-lg border border-indigo-100 bg-indigo-50/50 px-3.5 py-3">
         <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-indigo-600">
-          Recommended next action
+          Hành động tiếp theo
         </p>
         <p className="mt-1.5 text-xs font-semibold leading-5 text-slate-800">{item.nextAction}</p>
       </div>
@@ -406,28 +416,28 @@ export function DashboardPage() {
   const queueRoute = "/bql/incidents";
   const heroAction = {
     "Pending Approval": {
-      nextAction: "Review the recommended plumbing assignment",
-      actionLabel: "Review approval",
+      nextAction: "Xem xét đề xuất điều phối đội cấp thoát nước",
+      actionLabel: "Xem phê duyệt",
       actionRoute: "/bql/incidents/INC-024/approval",
     },
     Assigned: {
-      nextAction: "Monitor the BQL-approved assignment",
-      actionLabel: "Monitor assignment",
+      nextAction: "Theo dõi phân công đã được BQL phê duyệt",
+      actionLabel: "Theo dõi phân công",
       actionRoute: "/bql/incidents/INC-024",
     },
     "In Progress": {
-      nextAction: "Monitor field work and SLA risk",
-      actionLabel: "Monitor field work",
+      nextAction: "Theo dõi công việc tại hiện trường và rủi ro SLA",
+      actionLabel: "Theo dõi xử lý",
       actionRoute: "/bql/incidents/INC-024",
     },
     "Resolution Review": {
-      nextAction: "Review the technician-recorded outcome",
-      actionLabel: "Review outcome",
+      nextAction: "Xem xét kết quả do nhân viên kỹ thuật ghi nhận",
+      actionLabel: "Xem kết quả",
       actionRoute: "/bql/incidents/INC-024",
     },
     Resolved: {
-      nextAction: "Review the completed operational outcome",
-      actionLabel: "Review completed outcome",
+      nextAction: "Xem xét kết quả xử lý đã hoàn tất",
+      actionLabel: "Xem kết quả hoàn tất",
       actionRoute: "/bql/incidents/INC-024",
     },
   }[operationalState.incidentStatus];
@@ -446,22 +456,22 @@ export function DashboardPage() {
       : [dashboardIncidents[3]];
   const liveSlaIncidents = [heroIncident, ...dashboardIncidents.slice(1)];
   const heroActivity = {
-    "Pending Approval": "Plumbing assignment recommended",
-    Assigned: "Plumbing assignment approved by BQL",
-    "In Progress": "Technician work started",
-    "Resolution Review": "Technician outcome awaiting BQL review",
-    Resolved: "Resolution confirmed by BQL",
+    "Pending Approval": "Đã đề xuất điều phối đội cấp thoát nước",
+    Assigned: "BQL đã phê duyệt phân công đội cấp thoát nước",
+    "In Progress": "Nhân viên kỹ thuật đã bắt đầu xử lý",
+    "Resolution Review": "Chờ BQL xem xét kết quả do nhân viên kỹ thuật ghi nhận",
+    Resolved: "BQL đã xác nhận kết quả xử lý",
   }[operationalState.incidentStatus];
 
   return (
     <>
       <PageHeader
         eyebrow="Sunrise Residence"
-        title="BQL Operations"
-        description="Monitor incidents, approvals and SLA risk across the property."
+        title="Tổng quan vận hành"
+        description="Theo dõi sự cố, phê duyệt và rủi ro SLA trong toàn khu căn hộ."
         actions={
           <Button onClick={() => navigate(queueRoute)}>
-            Review incident queue <ArrowRight size={16} />
+            Xem danh sách sự cố <ArrowRight size={16} />
           </Button>
         }
       />
@@ -472,15 +482,15 @@ export function DashboardPage() {
             id="attention-summary"
             className="text-xs font-bold uppercase tracking-[0.1em] text-slate-500"
           >
-            Attention summary
+            Tổng quan cần xử lý
           </h2>
-          <span className="text-xs text-slate-400">Updated just now</span>
+          <span className="text-xs text-slate-400">Vừa cập nhật</span>
         </div>
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           <AttentionMetricCard
             value="2"
-            label="Critical incidents"
-            detail="Require immediate attention"
+            label="Sự cố khẩn cấp"
+            detail="Cần xử lý ngay"
             tone="critical"
             onClick={() => navigate(queueRoute)}
           />
@@ -491,22 +501,22 @@ export function DashboardPage() {
                 ? "3"
                 : "2"
             }
-            label="Pending approval"
-            detail="Human decision required"
+            label="Chờ BQL phê duyệt"
+            detail="Cần BQL quyết định"
             tone="approval"
             onClick={() => navigate(queueRoute)}
           />
           <AttentionMetricCard
             value="4"
-            label="SLA at risk"
-            detail="Needs action soon"
+            label="Có nguy cơ trễ SLA"
+            detail="Cần sớm có hướng xử lý"
             tone="risk"
             onClick={() => navigate(queueRoute)}
           />
           <AttentionMetricCard
             value="12"
-            label="Open incidents"
-            detail="Currently being handled"
+            label="Sự cố đang mở"
+            detail="Đang được theo dõi xử lý"
             tone="open"
             onClick={() => navigate(queueRoute)}
           />
@@ -518,14 +528,14 @@ export function DashboardPage() {
           <div>
             <div className="flex items-center gap-2">
               <AlertTriangle size={18} className="text-orange-600" />
-              <h2 className="text-base font-bold text-slate-950">Needs Attention Now</h2>
+              <h2 className="text-base font-bold text-slate-950">Cần xử lý</h2>
             </div>
             <p className="mt-1 text-xs text-slate-500">
-              Highest-priority incidents, ordered by operational urgency.
+              Các sự cố ưu tiên cao, được sắp xếp theo mức độ khẩn cấp.
             </p>
           </div>
           <span className="rounded-full bg-orange-50 px-3 py-1 text-xs font-bold text-orange-700 ring-1 ring-inset ring-orange-600/15">
-            {liveAttentionIncidents.length} actions due
+            {liveAttentionIncidents.length} việc cần xử lý
           </span>
         </div>
         <div className="divide-y divide-slate-100">
@@ -537,7 +547,7 @@ export function DashboardPage() {
 
       <div className="mt-6 grid gap-6 xl:grid-cols-3">
         <Card className="overflow-hidden">
-          <SectionHeading title="Critical Incidents" meta="Immediate attention" />
+          <SectionHeading title="Sự cố khẩn cấp" meta="Cần xử lý ngay" />
           <div className="divide-y divide-slate-100">
             {liveCriticalIncidents.map((item) => (
               <div key={item.id} className="p-4">
@@ -549,7 +559,7 @@ export function DashboardPage() {
                     >
                       {item.id}
                     </Link>
-                    <p className="mt-1 truncate text-sm font-bold text-slate-900">{item.title}</p>
+                    <p className="mt-1 truncate text-sm font-bold text-slate-900">{getBqlIncidentTitle(item.title)}</p>
                     <p className="mt-1 text-xs text-slate-500">{item.location}</p>
                   </div>
                   <PriorityBadge priority={item.priority} />
@@ -557,16 +567,16 @@ export function DashboardPage() {
                 <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-slate-500">
                   <StatusBadge status={item.status} context="incident" />
                   <span>·</span>
-                  <span>{item.tickets} reports</span>
+                  <span>{item.tickets} phản ánh</span>
                   <span>·</span>
-                  <span className="font-medium text-slate-700">{item.team}</span>
+                  <span className="font-medium text-slate-700">{getBqlTeamLabel(item.team)}</span>
                 </div>
                 <Button
                   className="mt-3 w-full"
                   variant="secondary"
                   onClick={() => navigate(`/bql/incidents/${item.id}`)}
                 >
-                  Review
+                  Xem xét
                 </Button>
               </div>
             ))}
@@ -574,11 +584,11 @@ export function DashboardPage() {
         </Card>
 
         <Card className="overflow-hidden border-violet-200">
-          <SectionHeading title="Pending Human Approval" meta="BQL decision required" />
+          <SectionHeading title="Chờ BQL phê duyệt" meta="Cần BQL quyết định" />
           <div className="border-b border-violet-100 bg-violet-50/60 px-4 py-3">
             <p className="flex items-center gap-2 text-xs font-semibold text-violet-800">
               <BrainCircuit size={15} />
-              AI recommends → System verifies → Human decides
+              AI phân tích → Hệ thống kiểm tra → BQL quyết định
             </p>
           </div>
           <div className="divide-y divide-slate-100">
@@ -587,22 +597,22 @@ export function DashboardPage() {
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <p className="font-mono text-xs font-bold text-indigo-600">{item.id}</p>
-                    <p className="mt-1 text-sm font-bold text-slate-900">{item.title}</p>
+                    <p className="mt-1 text-sm font-bold text-slate-900">{getBqlIncidentTitle(item.title)}</p>
                   </div>
                   <PriorityBadge priority={item.priority} />
                 </div>
                 <div className="mt-3 rounded-lg bg-slate-50 px-3 py-2.5">
                   <p className="text-[10px] font-bold uppercase tracking-[0.09em] text-indigo-600">
-                    AI recommendation
+                    Đề xuất của AI
                   </p>
-                  <p className="mt-1 text-xs font-bold text-slate-800">{item.team}</p>
+                  <p className="mt-1 text-xs font-bold text-slate-800">{getBqlTeamLabel(item.team)}</p>
                   <p className="mt-1 text-xs leading-5 text-slate-500">{item.approvalReason}</p>
                 </div>
                 <Button
                   className="mt-3 w-full"
                   onClick={() => navigate(`/bql/incidents/${item.id}/approval`)}
                 >
-                  Review approval
+                  Xem phê duyệt
                 </Button>
               </div>
             ))}
@@ -610,7 +620,7 @@ export function DashboardPage() {
         </Card>
 
         <Card className="overflow-hidden">
-          <SectionHeading title="SLA Risk" meta="Mock operational clock" />
+          <SectionHeading title="Rủi ro SLA" meta="Thời gian vận hành mô phỏng" />
           <div className="divide-y divide-slate-100">
             {liveSlaIncidents
               .filter((item) => item.slaState !== "On track")
@@ -624,7 +634,7 @@ export function DashboardPage() {
                       >
                         {item.id}
                       </Link>
-                      <p className="mt-1 text-sm font-semibold text-slate-900">{item.title}</p>
+                      <p className="mt-1 text-sm font-semibold text-slate-900">{getBqlIncidentTitle(item.title)}</p>
                     </div>
                     <SlaBadge state={item.slaState} />
                   </div>
@@ -632,7 +642,7 @@ export function DashboardPage() {
                     <span className="font-semibold text-slate-700">
                       {formatSlaText(item.slaDetail)}
                     </span>
-                    <span className="text-slate-500">{item.team}</span>
+                    <span className="text-slate-500">{getBqlTeamLabel(item.team)}</span>
                   </div>
                   <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-100">
                     <div
@@ -645,7 +655,7 @@ export function DashboardPage() {
                     className="mt-3 text-xs font-bold text-indigo-600 hover:text-indigo-800"
                     onClick={() => navigate(`/bql/incidents/${item.id}`)}
                   >
-                    Open incident <ArrowRight size={13} className="ml-1 inline" />
+                    Mở sự cố <ArrowRight size={13} className="ml-1 inline" />
                   </button>
                 </div>
               ))}
@@ -654,12 +664,12 @@ export function DashboardPage() {
       </div>
 
       <Card className="mt-6 overflow-hidden">
-        <SectionHeading title="Recent activity" meta="Incident updates" />
+        <SectionHeading title="Hoạt động gần đây" meta="Cập nhật sự cố" />
         <div className="grid divide-y divide-slate-100 md:grid-cols-3 md:divide-x md:divide-y-0">
           {[
-            ["INC-026", "Electrical team started work", "8 min ago"],
+            ["INC-026", "Đội điện bắt đầu xử lý", "8 min ago"],
             ["INC-024", heroActivity, "Just now"],
-            ["INC-025", "SLA entered breach", "24 min ago"],
+            ["INC-025", "SLA đã quá hạn", "24 min ago"],
           ].map(([id, activity, time]) => (
             <Link
               key={id}
@@ -670,7 +680,7 @@ export function DashboardPage() {
               <div>
                 <p className="text-xs font-bold text-indigo-600">{id}</p>
                 <p className="mt-1 text-sm font-semibold text-slate-800">{activity}</p>
-                <p className="mt-1 text-xs text-slate-400">{time}</p>
+                <p className="mt-1 text-xs text-slate-400">{getBqlRelativeTime(time)}</p>
               </div>
             </Link>
           ))}
@@ -684,27 +694,27 @@ export function TicketsPage() {
   return (
     <>
       <PageHeader
-        eyebrow="Individual resident reports"
-        title="Tickets"
-        description="Each ticket is one resident’s report. Tickets may be correlated into a single operational incident."
-        actions={<Button variant="secondary">Export queue</Button>}
+        eyebrow="Phản ánh của cư dân"
+        title={uiLabels.titles.residentTickets}
+        description="Mỗi phản ánh là một hồ sơ riêng của cư dân. Nhiều phản ánh có thể được liên kết trong cùng một sự cố vận hành."
+        actions={<Button variant="secondary">Xuất danh sách</Button>}
       />
       <div className="mb-4 flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600">
         <Ticket size={17} className="text-slate-500" />
-        <strong className="text-slate-800">Ticket view</strong>
-        <span className="text-slate-300">·</span> Reports remain individually traceable even when
-        related to an incident.
+        <strong className="text-slate-800">Góc nhìn phản ánh</strong>
+        <span className="text-slate-300">·</span> Mỗi phản ánh vẫn được theo dõi riêng kể cả khi
+        có liên quan đến một sự cố.
       </div>
       <Table
         headers={[
-          "Ticket ID",
-          "Issue",
-          "Location",
-          "Category",
-          "Priority",
-          "Status",
-          "Created",
-          "Related incident",
+          "Mã phản ánh",
+          "Nội dung phản ánh",
+          "Vị trí",
+          "Nhóm vấn đề",
+          "Mức độ ưu tiên",
+          "Trạng thái",
+          "Thời gian gửi",
+          "Sự cố liên quan",
         ]}
       >
         {tickets.map((ticket) => (
@@ -721,16 +731,16 @@ function TicketRow({ ticket }: { ticket: TicketType }) {
       <td className="px-5 py-4">
         <span className="font-mono text-xs font-bold text-slate-600">{ticket.id}</span>
       </td>
-      <td className="px-5 py-4 text-sm font-semibold text-slate-900">{ticket.issue}</td>
-      <td className="px-5 py-4 text-sm text-slate-600">{ticket.location}</td>
-      <td className="px-5 py-4 text-sm text-slate-600">{ticket.category}</td>
+      <td className="px-5 py-4 text-sm font-semibold text-slate-900">{getBqlTicketIssue(ticket.issue)}</td>
+      <td className="px-5 py-4 text-sm text-slate-600">{getBqlLocationLabel(ticket.location)}</td>
+      <td className="px-5 py-4 text-sm text-slate-600">{getBqlCategoryLabel(ticket.category)}</td>
       <td className="px-5 py-4">
         <PriorityBadge priority={ticket.priority} />
       </td>
       <td className="px-5 py-4">
         <StatusBadge status={ticket.status} context="ticket" />
       </td>
-      <td className="px-5 py-4 whitespace-nowrap text-sm text-slate-500">{ticket.created}</td>
+      <td className="px-5 py-4 whitespace-nowrap text-sm text-slate-500">{getBqlRelativeTime(ticket.created)}</td>
       <td className="px-5 py-4">
         {ticket.incident ? (
           <Link
@@ -741,7 +751,7 @@ function TicketRow({ ticket }: { ticket: TicketType }) {
             {ticket.incident}
           </Link>
         ) : (
-          <span className="text-sm text-slate-400">Not linked</span>
+          <span className="text-sm text-slate-400">Chưa liên kết</span>
         )}
       </td>
     </tr>
@@ -753,29 +763,29 @@ export function IncidentsPage() {
   return (
     <>
       <PageHeader
-        eyebrow="Operational problems"
-        title="Incidents"
-        description="Prioritize, approve, and coordinate the operational response across related resident tickets."
+        eyebrow="Sự cố vận hành"
+        title={uiLabels.titles.incidentQueue}
+        description="Ưu tiên, phê duyệt và điều phối ứng phó cho các sự cố có liên quan đến nhiều phản ánh của cư dân."
         actions={
           <Button onClick={() => navigate("/bql/incidents/INC-024/approval")}>
-            Review pending approvals
+            Xem phê duyệt đang chờ
           </Button>
         }
       />
       <div className="mb-4 flex items-center gap-2 rounded-lg border border-indigo-200 bg-indigo-50/60 px-4 py-3 text-sm text-indigo-800">
         <Gauge size={17} />
-        <strong>Incident view</strong>
-        <span className="text-indigo-300">·</span> One incident can coordinate multiple related
-        tickets and response actions.
+        <strong>Góc nhìn sự cố</strong>
+        <span className="text-indigo-300">·</span> Một sự cố có thể điều phối việc xử lý nhiều
+        phản ánh liên quan.
       </div>
       <Table
         headers={[
-          "Incident",
-          "Location",
-          "Related tickets",
-          "Priority",
-          "Status",
-          "Assigned team",
+          "Sự cố",
+          "Vị trí ghi nhận",
+          "Phản ánh liên quan",
+          "Mức độ ưu tiên",
+          "Trạng thái",
+          "Đội đang xử lý",
           "SLA",
         ]}
       >
@@ -809,16 +819,16 @@ function IncidentRow({ incident }: { incident: Incident }) {
           <div>
             <p className="font-mono text-xs font-bold text-indigo-600">{incident.id}</p>
             <p className="mt-1 whitespace-nowrap text-sm font-bold text-slate-900">
-              {incident.title}
+              {getBqlIncidentTitle(incident.title)}
             </p>
           </div>
         </div>
       </td>
-      <td className="px-5 py-4 text-sm text-slate-600">{incident.officialLocation}</td>
+      <td className="px-5 py-4 text-sm text-slate-600">{getBqlLocationLabel(incident.officialLocation)}</td>
       <td className="px-5 py-4">
         <span className="inline-flex items-center gap-1.5 rounded-md bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-700">
           <Ticket size={13} />
-          {incident.tickets} tickets
+          {incident.tickets} phản ánh
         </span>
       </td>
       <td className="px-5 py-4">
@@ -828,7 +838,7 @@ function IncidentRow({ incident }: { incident: Incident }) {
         <StatusBadge status={incident.status} context="incident" />
       </td>
       <td className="px-5 py-4 whitespace-nowrap text-sm font-medium text-slate-700">
-        {incident.currentTeam}
+        {getBqlTeamLabel(incident.currentTeam)}
       </td>
       <td
         className={`px-5 py-4 whitespace-nowrap text-sm font-bold ${slaColors[incident.slaTone]}`}

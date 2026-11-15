@@ -13,7 +13,17 @@ import {
 import { Link, useNavigate, useParams } from "react-router";
 import { Button, Card, PriorityBadge, SectionHeading, StatusBadge } from "./components";
 import { incidents, tickets, type Ticket } from "./data";
-import { getProvenanceLabel } from "./ui-language";
+import {
+  getBqlCategoryLabel,
+  getBqlIncidentTitle,
+  getBqlLocationLabel,
+  getBqlRelativeTime,
+  getBqlTeamLabel,
+  getBqlTicketIssue,
+  getCorrelationStatusLabel,
+  getAssessmentLevelLabel,
+  getProvenanceLabel,
+} from "./ui-language";
 
 type CorrelationStatus = "Linked" | "Candidate" | "Excluded";
 type CorrelationStrength = "High" | "Medium" | "Low";
@@ -70,7 +80,7 @@ export function CorrelationReviewPage() {
     setExcludedIds((current) => current.filter((id) => id !== ticketId));
     setDecision(null);
     setAdjusting(true);
-    setScopeNotice(`${ticketId} moved to the candidate pool.`);
+    setScopeNotice(`Đã chuyển ${ticketId} vào danh sách đề xuất liên kết.`);
   }
 
   function linkReport(ticket: Ticket) {
@@ -83,14 +93,14 @@ export function CorrelationReviewPage() {
     setLowStrengthWarning(null);
     setDecision(null);
     setAdjusting(true);
-    setScopeNotice(`${ticket.id} added to the proposed incident scope by BQL.`);
+    setScopeNotice(`BQL đã thêm ${ticket.id} vào phạm vi sự cố được đề xuất.`);
   }
 
   function excludeReport(ticketId: string) {
     setExcludedIds((current) => [...new Set([...current, ticketId])]);
     setLowStrengthWarning(null);
     setDecision(null);
-    setScopeNotice(`${ticketId} excluded from the proposed incident scope by BQL.`);
+    setScopeNotice(`BQL đã loại ${ticketId} khỏi phạm vi sự cố được đề xuất.`);
   }
 
   function confirmCorrelation() {
@@ -110,24 +120,24 @@ export function CorrelationReviewPage() {
         to={`/bql/incidents/${incident.id}`}
         className="mb-4 inline-flex items-center gap-2 text-sm font-semibold text-slate-500 hover:text-slate-900"
       >
-        <ArrowLeft size={16} /> Back to incident
+        <ArrowLeft size={16} /> Quay lại sự cố
       </Link>
 
       <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.12em] text-indigo-600">
-            Incident formation · {incident.id}
+            Hình thành sự cố · {incident.id}
           </p>
           <h1 className="mt-1 text-2xl font-bold tracking-[-0.035em] text-slate-950">
-            Correlation Review
+            Xem xét liên kết phản ánh
           </h1>
           <p className="mt-1.5 text-sm text-slate-500">
-            Review how resident reports are related before confirming the incident scope.
+            Xem xét mối liên hệ giữa các phản ánh của cư dân trước khi xác nhận phạm vi sự cố.
           </p>
         </div>
         <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
           <p className="flex items-center gap-2 text-xs font-bold text-amber-900">
-            <ShieldCheck size={16} /> Incident formation is a BQL-controlled decision.
+            <ShieldCheck size={16} /> BQL quyết định việc hình thành sự cố.
           </p>
         </div>
       </div>
@@ -139,16 +149,16 @@ export function CorrelationReviewPage() {
               <ProvenanceLabel tone="correlation">Correlation-derived</ProvenanceLabel>
               <span className="font-mono text-xs font-bold text-indigo-600">{incident.id}</span>
             </div>
-            <h2 className="mt-2 text-xl font-bold text-slate-950">{incident.title}</h2>
-            <p className="mt-1 text-sm text-slate-500">{incident.officialLocation}</p>
+              <h2 className="mt-2 text-xl font-bold text-slate-950">{getBqlIncidentTitle(incident.title)}</h2>
+            <p className="mt-1 text-sm text-slate-500">{getBqlLocationLabel(incident.officialLocation)}</p>
           </div>
           <div className="grid grid-cols-2 gap-x-8 gap-y-3 text-sm sm:grid-cols-4">
-            <CompactFact label="Status">
+            <CompactFact label="Trạng thái">
               <StatusBadge status={incident.status} context="incident" />
             </CompactFact>
-            <CompactFact label="Current team">{incident.currentTeam}</CompactFact>
-            <CompactFact label="Official location">{incident.officialLocation}</CompactFact>
-            <CompactFact label="Property">Sunrise Residence</CompactFact>
+            <CompactFact label="Đội đang xử lý">{getBqlTeamLabel(incident.currentTeam)}</CompactFact>
+            <CompactFact label="Vị trí ghi nhận">{getBqlLocationLabel(incident.officialLocation)}</CompactFact>
+            <CompactFact label="Khu căn hộ">Sunrise Residence</CompactFact>
           </div>
         </div>
       </Card>
@@ -160,67 +170,66 @@ export function CorrelationReviewPage() {
               <div>
                 <div className="flex items-center gap-2">
                   <BrainCircuit size={18} className="text-indigo-600" />
-                  <h2 className="text-base font-bold text-slate-950">Suggested incident scope</h2>
+                  <h2 className="text-base font-bold text-slate-950">Phạm vi sự cố được đề xuất</h2>
                   <ProvenanceLabel tone="ai">AI-generated</ProvenanceLabel>
                 </div>
                 <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600">
-                  The system found a strong relationship between these reports based on issue type,
-                  location proximity, and reporting time. The pattern suggests a shared operational
-                  event and requires BQL confirmation.
+                  Hệ thống phát hiện các phản ánh có dấu hiệu liên quan dựa trên nội dung vấn đề,
+                  khoảng cách vị trí và thời điểm gửi. BQL cần xem xét và xác nhận phạm vi sự cố.
                 </p>
               </div>
               <span className="rounded-full bg-indigo-50 px-3 py-1.5 text-xs font-bold text-indigo-700 ring-1 ring-inset ring-indigo-600/15">
-                {confidence} correlation confidence
+                Mức độ liên quan: {getAssessmentLevelLabel(confidence)}
               </span>
             </div>
             <div className="grid border-t border-indigo-100 bg-indigo-50/30 sm:grid-cols-3">
-              <SummaryMetric value={String(linkedReports.length)} label="related reports" />
-              <SummaryMetric value={String(excludedCount)} label="candidate excluded" />
-              <SummaryMetric value={confidence} label="correlation confidence" />
+              <SummaryMetric value={String(linkedReports.length)} label="phản ánh đang liên kết" />
+              <SummaryMetric value={String(excludedCount)} label="đề xuất không liên kết" />
+              <SummaryMetric value={getAssessmentLevelLabel(confidence)} label="mức độ liên quan" />
             </div>
           </Card>
 
           <Card className="overflow-hidden">
             <SectionHeading
-              title="Why the system grouped these reports"
-              meta="Explainable signals"
+              title="Cơ sở hệ thống nhóm các phản ánh này"
+              meta="Các dấu hiệu có thể kiểm tra"
             />
             <div className="grid gap-3 p-5 sm:grid-cols-2">
               <SignalCard
-                title="Issue similarity"
+                title="Mức độ tương đồng về nội dung"
                 strength="High"
-                examples={["Water leakage", "Active dripping", "Wet ceiling", "Water marks"]}
+                examples={["Rò rỉ nước", "Nước đang nhỏ giọt", "Trần nhà bị ướt", "Vết nước loang"]}
               />
               <SignalCard
-                title="Location proximity"
+                title="Mức độ gần nhau về vị trí"
                 strength="High"
-                examples={["Tower A", "Floors 12–14", "Adjacent units / nearby service area"]}
+                examples={["Tòa A", "Tầng 12–14", "Các căn hộ liền kề / khu vực kỹ thuật lân cận"]}
               />
               <SignalCard
-                title="Time proximity"
+                title="Mức độ gần nhau về thời gian"
                 strength="High"
-                examples={["Reports received between 14:03 and 14:15"]}
+                examples={["Các phản ánh được gửi từ 14:03 đến 14:15"]}
               />
               <SignalCard
-                title="Operational category"
+                title="Nhóm vấn đề vận hành"
                 strength="High"
-                examples={["All linked reports classified as Plumbing"]}
+                examples={["Tất cả phản ánh được liên kết thuộc nhóm cấp thoát nước"]}
               />
             </div>
             <div className="border-t border-slate-100 px-5 py-3 text-xs text-slate-500">
-              <strong className="text-slate-700">Confidence explanation:</strong> Multiple
-              independent reports describe similar symptoms in nearby locations within a short time
-              window.
+              <strong className="text-slate-700">Giải thích mức độ liên quan:</strong> Nhiều phản
+              ánh độc lập mô tả triệu chứng tương tự tại các vị trí gần nhau trong khoảng thời gian
+              ngắn.
             </div>
           </Card>
 
           <Card className="overflow-hidden">
-            <SectionHeading title="Correlation Map" meta="Reports → operational incident" />
+            <SectionHeading title="Sơ đồ liên kết phản ánh" meta="Phản ánh → sự cố vận hành" />
             <div className="bg-slate-50/60 p-5">
               <div className="mx-auto max-w-md rounded-xl border-2 border-indigo-200 bg-white p-4 text-center shadow-sm">
                 <span className="font-mono text-xs font-bold text-indigo-600">{incident.id}</span>
-                <p className="mt-1 text-sm font-bold text-slate-950">{incident.title}</p>
-                <p className="mt-1 text-xs text-slate-500">Potential shared operational event</p>
+                <p className="mt-1 text-sm font-bold text-slate-950">{getBqlIncidentTitle(incident.title)}</p>
+                <p className="mt-1 text-xs text-slate-500">Sự việc vận hành có thể liên quan</p>
               </div>
               <div className="mx-auto h-5 w-px bg-indigo-200" />
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -238,28 +247,28 @@ export function CorrelationReviewPage() {
                       <span className="font-mono text-[11px] font-bold text-indigo-600">
                         {ticket.id}
                       </span>
-                      <span className="text-[10px] font-bold text-emerald-700">Linked</span>
+                      <span className="text-[10px] font-bold text-emerald-700">Đã liên kết</span>
                     </div>
                     <p className="mt-1.5 truncate text-xs font-semibold text-slate-800">
-                      {ticket.issue}
+                      {getBqlTicketIssue(ticket.issue)}
                     </p>
                     <p className="mt-1 text-[11px] text-slate-500">
-                      {ticket.location} · {ticket.created}
+                      {getBqlLocationLabel(ticket.location)} · {getBqlRelativeTime(ticket.created)}
                     </p>
                   </button>
                 ))}
               </div>
             </div>
             <p className="border-t border-slate-100 px-5 py-3 text-center text-xs text-slate-500">
-              These are different resident observations that may describe one operational event.
-              Correlation does not prove a shared physical root cause.
+              Đây là các phản ánh riêng biệt có thể mô tả cùng một sự việc vận hành. Việc liên kết
+              không chứng minh các phản ánh có chung nguyên nhân vật lý.
             </p>
           </Card>
 
           <ReportGroup
-            title="Currently linked to incident"
-            count={`${linkedReports.length} reports`}
-            description="Resident tickets currently included in the proposed incident scope."
+            title="Các phản ánh đang liên kết với sự cố"
+            count={`${linkedReports.length} phản ánh`}
+            description="Các phản ánh hiện nằm trong phạm vi sự cố được đề xuất."
           >
             {linkedReports.map((ticket) => (
               <ReportRow
@@ -270,7 +279,7 @@ export function CorrelationReviewPage() {
                 onSelect={() => setSelectedTicketId(ticket.id)}
                 action={
                   <Button variant="ghost" onClick={() => removeReport(ticket.id)}>
-                    <Unlink size={14} /> Remove
+                    <Unlink size={14} /> Gỡ liên kết
                   </Button>
                 }
               />
@@ -278,9 +287,9 @@ export function CorrelationReviewPage() {
           </ReportGroup>
 
           <ReportGroup
-            title="Potentially related reports"
-            count={`${candidateReports.length} ${candidateReports.length === 1 ? "report" : "reports"}`}
-            description="Candidates remain separate until BQL explicitly changes the incident scope."
+            title="Các phản ánh có thể liên quan"
+            count={`${candidateReports.length} phản ánh`}
+            description="Các phản ánh được đề xuất vẫn tách riêng cho đến khi BQL cập nhật phạm vi sự cố."
           >
             {scopeNotice && (
               <div
@@ -302,18 +311,18 @@ export function CorrelationReviewPage() {
                     strength={lowStrength ? "Low" : "High"}
                     reason={
                       lowStrength
-                        ? "Different issue category despite being in the same property."
-                        : "Removed from the linked scope by BQL."
+                        ? "Khác nhóm vấn đề dù thuộc cùng khu căn hộ."
+                        : "BQL đã gỡ phản ánh này khỏi phạm vi liên kết."
                     }
                     selected={selectedTicketId === ticket.id}
                     onSelect={() => setSelectedTicketId(ticket.id)}
                     action={
                       <div className="flex flex-wrap justify-end gap-1">
                         <Button variant="ghost" onClick={() => excludeReport(ticket.id)}>
-                          Do not link
+                          Không liên kết
                         </Button>
                         <Button variant="secondary" onClick={() => linkReport(ticket)}>
-                          Review & add
+                          Xem xét và thêm
                         </Button>
                       </div>
                     }
@@ -322,13 +331,13 @@ export function CorrelationReviewPage() {
                     <div className="mx-5 mb-4 flex flex-col gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4 sm:flex-row sm:items-center">
                       <AlertTriangle size={18} className="shrink-0 text-amber-700" />
                       <p className="flex-1 text-xs leading-5 text-amber-900">
-                        This report has a different category and lower correlation strength. Confirm
-                        before linking it as a human override.
+                        Phản ánh này thuộc nhóm vấn đề khác và có mức độ liên quan thấp hơn. Hãy xác
+                        nhận trước khi BQL thêm phản ánh này vào phạm vi liên kết.
                       </p>
                       <Button variant="secondary" onClick={() => setLowStrengthWarning(null)}>
-                        Cancel
+                        Hủy
                       </Button>
-                      <Button onClick={() => linkReport(ticket)}>Link report</Button>
+                      <Button onClick={() => linkReport(ticket)}>Liên kết phản ánh</Button>
                     </div>
                   )}
                 </div>
@@ -350,40 +359,40 @@ export function CorrelationReviewPage() {
             <div className="border-b border-indigo-100 bg-indigo-50/60 p-5">
               <div className="flex items-center gap-2">
                 <ShieldCheck size={18} className="text-indigo-600" />
-                <h2 className="text-base font-bold text-slate-950">Confirm incident scope</h2>
+                <h2 className="text-base font-bold text-slate-950">Xác nhận phạm vi sự cố</h2>
               </div>
               <p className="mt-2 text-sm font-bold text-indigo-700">
-                {linkedReports.length} reports currently linked
+                Hiện có {linkedReports.length} phản ánh được liên kết
               </p>
             </div>
             <div className="p-5">
               {decision === "confirmed" ? (
                 <DecisionSuccess
-                  title="Incident scope confirmed"
-                  description={`${linkedReports.length} resident reports are now confirmed as supporting reports for ${incident.id}.`}
+                  title="Đã xác nhận phạm vi sự cố"
+                  description={`Đã xác nhận ${linkedReports.length} phản ánh của cư dân là căn cứ hỗ trợ cho sự cố ${incident.id}.`}
                   onReturn={() => navigate(`/bql/incidents/${incident.id}`)}
                 />
               ) : decision === "rejected" ? (
                 <DecisionSuccess
                   rejected
-                  title="Correlation rejected"
-                  description="The selected reports will not be treated as one incident in this prototype."
+                  title="Đã từ chối liên kết"
+                  description="Các phản ánh đã chọn sẽ không được xem là cùng một sự cố trong bản mẫu này."
                   onReturn={() => navigate(`/bql/incidents/${incident.id}`)}
                 />
               ) : (
                 <>
-                  <DecisionStep label="AI recommendation" provenance="AI-generated" tone="ai">
-                    Keep the plumbing-related reports grouped under {incident.id}.
+                  <DecisionStep label="Đề xuất của AI" provenance="AI-generated" tone="ai">
+                    Nhóm các phản ánh về cấp thoát nước trong phạm vi sự cố {incident.id}.
                   </DecisionStep>
                   <div className="my-4 border-t border-slate-100" />
-                  <DecisionStep label="System checks" provenance="System record">
+                  <DecisionStep label="Kiểm tra của hệ thống" provenance="System record">
                     <ul className="mt-2 space-y-2">
                       {[
-                        "Same property",
-                        "Same operational category",
-                        "Nearby locations",
-                        "Short reporting window",
-                        "No conflicting incident assignment",
+                        "Cùng khu căn hộ",
+                        "Cùng nhóm vấn đề vận hành",
+                        "Vị trí ở gần nhau",
+                        "Thời điểm gửi cách nhau không lâu",
+                        "Không có phân công sự cố bị trùng lặp",
                       ].map((check) => (
                         <li key={check} className="flex items-center gap-2 text-xs text-slate-600">
                           <Check size={13} className="text-emerald-600" /> {check}
@@ -392,36 +401,36 @@ export function CorrelationReviewPage() {
                     </ul>
                   </DecisionStep>
                   <div className="my-4 border-t border-slate-100" />
-                  <DecisionStep label="BQL decision" provenance="Human decision" tone="human">
+                  <DecisionStep label="Quyết định của BQL" provenance="Human decision" tone="human">
                     <p className="mt-1 text-xs leading-5 text-slate-500">
-                      Confirm, adjust, or reject the proposed incident scope.
+                      BQL có thể xác nhận, điều chỉnh hoặc từ chối phạm vi sự cố được đề xuất.
                     </p>
                   </DecisionStep>
                   {adjusting && (
                     <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs leading-5 text-amber-900">
-                      Adjustment mode is active. Add or remove reports in the review lists, then
-                      confirm the revised scope.
+                      Đang ở chế độ điều chỉnh. Thêm hoặc gỡ phản ánh trong danh sách, sau đó xác
+                      nhận lại phạm vi sự cố.
                     </div>
                   )}
                   <Button className="mt-5 w-full" onClick={confirmCorrelation}>
-                    Confirm correlation
+                    Xác nhận liên kết
                   </Button>
                   <Button
                     className="mt-2 w-full"
                     variant="secondary"
                     onClick={() => setAdjusting(true)}
                   >
-                    Adjust scope
+                    Điều chỉnh phạm vi
                   </Button>
                   <Button
                     className="mt-2 w-full"
                     variant="ghost"
                     onClick={() => setRejectOpen(true)}
                   >
-                    Reject correlation
+                    Từ chối liên kết
                   </Button>
                   <p className="mt-4 text-center text-[11px] font-semibold text-slate-400">
-                    AI suggests correlation → System shows evidence → BQL confirms
+                    AI đề xuất liên kết → Hệ thống cung cấp bằng chứng → BQL xác nhận
                   </p>
                 </>
               )}
@@ -429,10 +438,10 @@ export function CorrelationReviewPage() {
           </Card>
 
           <Card className="p-4">
-            <p className="text-xs font-bold text-slate-800">Decision boundary</p>
+            <p className="text-xs font-bold text-slate-800">Ranh giới ra quyết định</p>
             <p className="mt-1 text-xs leading-5 text-slate-500">
-              Correlation identifies relationship patterns. It does not diagnose a root cause, merge
-              reports autonomously, or assign operational work.
+              Liên kết phản ánh giúp nhận diện các dấu hiệu liên quan. Việc này không xác định
+              nguyên nhân gốc, không tự động gộp phản ánh và không tự phân công công việc.
             </p>
           </Card>
         </aside>
@@ -449,14 +458,14 @@ export function CorrelationReviewPage() {
             <div className="flex items-start justify-between border-b border-slate-200 p-5">
               <div>
                 <h2 id="reject-correlation-title" className="text-base font-bold text-slate-950">
-                  Reject this correlation?
+                  Từ chối liên kết phản ánh này?
                 </h2>
                 <p className="mt-1 text-xs leading-5 text-slate-500">
-                  The selected reports will not be treated as one incident in this prototype.
+                  Các phản ánh đã chọn sẽ không được xem là cùng một sự cố trong bản mẫu này.
                 </p>
               </div>
               <button
-                aria-label="Close rejection dialog"
+                aria-label="Đóng hộp thoại từ chối liên kết"
                 className="text-slate-400 hover:text-slate-700"
                 onClick={() => setRejectOpen(false)}
               >
@@ -465,30 +474,30 @@ export function CorrelationReviewPage() {
             </div>
             <div className="p-5">
               <label className="form-label">
-                Rejection reason
+                Lý do từ chối
                 <select
                   className="form-input"
                   value={rejectReason}
                   onChange={(event) => setRejectReason(event.target.value)}
                 >
-                  <option value="">Select a reason</option>
-                  <option>Different physical issue</option>
-                  <option>Different location</option>
-                  <option>Timing does not match</option>
-                  <option>Insufficient evidence</option>
-                  <option>Other</option>
+                  <option value="">Chọn lý do</option>
+                  <option value="Different physical issue">Nội dung phản ánh khác nhau</option>
+                  <option value="Different location">Vị trí khác nhau</option>
+                  <option value="Timing does not match">Thời điểm không phù hợp</option>
+                  <option value="Insufficient evidence">Chưa đủ bằng chứng</option>
+                  <option value="Other">Lý do khác</option>
                 </select>
               </label>
               <div className="mt-5 flex justify-end gap-2">
                 <Button variant="secondary" onClick={() => setRejectOpen(false)}>
-                  Cancel
+                  Hủy
                 </Button>
                 <Button variant="danger" disabled={!rejectReason} onClick={confirmRejection}>
-                  Confirm rejection
+                  Xác nhận từ chối
                 </Button>
               </div>
               <p className="mt-3 text-center text-[11px] text-slate-400">
-                Prototype only. No incident or ticket data will be deleted.
+                Chỉ là thao tác trong bản mẫu. Không có dữ liệu sự cố hay phản ánh nào bị xóa.
               </p>
             </div>
           </Card>
@@ -572,7 +581,7 @@ function StrengthBadge({ strength }: { strength: CorrelationStrength }) {
   }[strength];
   return (
     <span className={`rounded-full px-2.5 py-1 text-xs font-bold ring-1 ring-inset ${styles}`}>
-      {strength}
+      {getAssessmentLevelLabel(strength)}
     </span>
   );
 }
@@ -638,13 +647,13 @@ function ReportRow({
                   : "bg-amber-50 text-amber-700"
             }`}
           >
-            {status}
+            {getCorrelationStatusLabel(status)}
           </span>
           {strength && <StrengthBadge strength={strength} />}
         </div>
-        <p className="mt-1.5 truncate text-sm font-semibold text-slate-900">{ticket.issue}</p>
+        <p className="mt-1.5 truncate text-sm font-semibold text-slate-900">{getBqlTicketIssue(ticket.issue)}</p>
         <p className="mt-1 text-xs text-slate-500">
-          {ticket.location} · {ticket.created} · {ticket.category}
+          {getBqlLocationLabel(ticket.location)} · {getBqlRelativeTime(ticket.created)} · {getBqlCategoryLabel(ticket.category)}
         </p>
         {reason && <p className="mt-1.5 text-xs leading-5 text-slate-500">{reason}</p>}
       </button>
@@ -665,16 +674,16 @@ function EvidencePanel({
   const low = strength === "Low";
   const evidence = low
     ? [
-        ["Issue similarity", "Low", "Electrical sparking differs from water leakage symptoms."],
-        ["Location", "Medium", "Same property, but not within the affected floors."],
-        ["Time", "Low", "Reported outside the concentrated 14:03–14:15 window."],
-        ["Category", "Low", "Electrical rather than Plumbing."],
+        ["Mức độ tương đồng về nội dung", "Low", "Tia lửa điện khác với dấu hiệu rò rỉ nước."],
+        ["Vị trí", "Medium", "Cùng khu căn hộ nhưng không thuộc các tầng bị ảnh hưởng."],
+        ["Thời gian", "Low", "Phản ánh nằm ngoài khoảng thời gian tập trung từ 14:03 đến 14:15."],
+        ["Nhóm vấn đề", "Low", "Thuộc nhóm điện, không phải cấp thoát nước."],
       ]
     : [
-        ["Issue similarity", "High", "Similar water leakage symptoms."],
-        ["Location", "High", `${ticket.location}, adjacent to other linked reports.`],
-        ["Time", "High", "Reported within minutes of the first report."],
-        ["Category", "High", "Plumbing."],
+        ["Mức độ tương đồng về nội dung", "High", "Có dấu hiệu rò rỉ nước tương tự."],
+        ["Vị trí", "High", `${getBqlLocationLabel(ticket.location)}, gần các phản ánh đã liên kết.`],
+        ["Thời gian", "High", "Được gửi cách phản ánh đầu tiên vài phút."],
+        ["Nhóm vấn đề", "High", "Cấp thoát nước."],
       ];
   return (
     <Card className="overflow-hidden border-indigo-200">
@@ -684,15 +693,15 @@ function EvidencePanel({
             <span className="font-mono text-xs font-bold text-indigo-600">{ticket.id}</span>
             <ProvenanceLabel tone="ai">AI-generated interpretation</ProvenanceLabel>
           </div>
-          <h2 className="mt-1.5 text-sm font-bold text-slate-950">{ticket.issue}</h2>
+          <h2 className="mt-1.5 text-sm font-bold text-slate-950">{getBqlTicketIssue(ticket.issue)}</h2>
         </div>
         <span className="text-xs font-bold text-slate-500">
-          {linked ? "Currently linked" : "Not linked"}
+            {linked ? "Đang được liên kết" : "Chưa liên kết"}
         </span>
       </div>
       <div className="p-5">
         <h3 className="text-xs font-bold uppercase tracking-[0.09em] text-slate-500">
-          Correlation evidence
+          Bằng chứng về mối liên hệ
         </h3>
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
           {evidence.map(([label, level, explanation]) => (
@@ -706,14 +715,14 @@ function EvidencePanel({
           ))}
         </div>
         <div className="mt-4 rounded-lg bg-slate-50 p-4">
-          <p className="text-xs font-bold text-slate-800">Relationship interpretation</p>
+          <p className="text-xs font-bold text-slate-800">Diễn giải mối liên hệ</p>
           <p className="mt-1 text-xs leading-5 text-slate-600">
             {low
-              ? "These signals suggest this report is not part of the same operational event."
-              : "These signals suggest the report may be part of the same operational event."}
+              ? "Các dấu hiệu cho thấy phản ánh này có thể không thuộc cùng sự việc vận hành."
+              : "Các dấu hiệu cho thấy phản ánh này có thể liên quan đến cùng sự việc vận hành."}
           </p>
           <p className="mt-2 text-xs font-semibold text-slate-700">
-            This is a correlation recommendation, not proof of a shared root cause.
+            Đây là đề xuất liên kết phản ánh, không phải bằng chứng xác nhận chung nguyên nhân.
           </p>
         </div>
       </div>
@@ -767,12 +776,12 @@ function DecisionSuccess({
       <p className="mt-2 text-sm leading-6 text-slate-500">{description}</p>
       <div className="mt-4 rounded-lg bg-slate-50 p-3">
         <p className="text-[10px] font-bold uppercase tracking-[0.09em] text-amber-700">
-          Human decision
+          Quyết định của BQL
         </p>
-        <p className="mt-1 text-xs font-semibold text-slate-700">Decision recorded by BQL</p>
+        <p className="mt-1 text-xs font-semibold text-slate-700">BQL đã ghi nhận quyết định</p>
       </div>
       <Button className="mt-5 w-full" onClick={onReturn}>
-        Return to incident <ArrowRight size={15} />
+        Quay lại sự cố <ArrowRight size={15} />
       </Button>
     </div>
   );
