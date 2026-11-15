@@ -428,7 +428,7 @@ export function ResidentIssueStatusPage() {
                   </div>
                 </div>
                 <p className="mt-3 text-xs font-semibold text-emerald-800">
-                  {uiLabels.resident.ticket.resolvedAt}
+                  {getResidentStatusLabel("Issue resolved")}
                 </p>
               </div>
               <div className="p-5">

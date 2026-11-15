@@ -210,7 +210,6 @@ export const uiLabels = {
       resolutionReviewDescription:
         "Ban Quản lý đang xem xét kết quả xử lý trước khi hoàn tất phản ánh.",
       resolutionTitle: "Kết quả xử lý",
-      resolvedAt: "Đã xử lý · 15:10",
       feedbackQuestion: "Vấn đề đã được xử lý ổn chưa?",
       feedbackConfirmed: "Cảm ơn bạn đã xác nhận vấn đề đã được xử lý.",
       feedbackResolved: "Đã xử lý xong",
@@ -239,7 +238,7 @@ export const uiLabels = {
       },
       "Maintenance team assigned": {
         title: "Đã sắp xếp nhân viên kỹ thuật",
-        description: "Ban Quản lý đã sắp xếp nhân viên kỹ thuật để xem xét vấn đề.",
+        description: "Ban Quản lý đã sắp xếp nhân viên kỹ thuật để xử lý vấn đề.",
         next: "Nhân viên kỹ thuật sẽ bắt đầu công việc khi có thể tiếp cận vị trí và điều kiện phù hợp.",
       },
       "Maintenance team is working on it": {
