@@ -90,20 +90,20 @@ export function EntryPage() {
           to="/login"
           className="rounded-lg border border-white/15 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:bg-white/10"
         >
-          Đăng nhập demo
+          Vào bản mẫu
         </Link>
       </header>
       <main className="mx-auto flex max-w-7xl flex-col px-6 pb-14 pt-16 lg:px-10 lg:pt-24">
         <div className="mb-14 max-w-3xl">
           <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-indigo-300/20 bg-indigo-400/10 px-3 py-1.5 text-xs font-semibold text-indigo-200">
-            <Sparkles size={14} /> Điều phối sự cố, con người giữ quyền quyết định
+            <Sparkles size={14} /> Điều phối sự cố, Ban Quản lý (BQL) giữ quyền quyết định
           </div>
           <h1 className="text-5xl font-bold leading-[1.08] tracking-[-0.055em] sm:text-6xl">
             Biến phản ánh của cư dân thành <span className="text-indigo-300">hành động phối hợp.</span>
           </h1>
           <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-400">
-            FixIt Agent hỗ trợ đội ngũ vận hành liên kết các phản ánh, quản lý sự cố và đưa ra quyết
-            định nhanh hơn dựa trên bằng chứng.
+            FixIt Agent hỗ trợ BQL liên kết các phản ánh, quản lý sự cố và đưa ra quyết định nhanh
+            hơn dựa trên bằng chứng.
           </p>
         </div>
         <div className="grid gap-4 lg:grid-cols-3">
@@ -170,7 +170,7 @@ export function LoginPage() {
           </p>
           <h1 className="text-3xl font-bold tracking-[-0.04em] text-slate-950">Chào mừng quay lại</h1>
           <p className="mt-2 text-sm leading-6 text-slate-500">
-            Đăng nhập demo để tiếp tục sử dụng bản mẫu FixIt Agent.
+            Chọn vai trò để tiếp tục sử dụng bản mẫu FixIt Agent.
           </p>
           <form className="mt-8 space-y-5" onSubmit={submit}>
             <label className="form-label">
@@ -187,7 +187,7 @@ export function LoginPage() {
               <input className="form-input" type="password" defaultValue="prototype" required />
             </label>
             <label className="form-label">
-              Vai trò demo
+              Vai trò
               <select className="form-input" value={role} onChange={(e) => setRole(e.target.value)}>
                 <option value="bql">{uiLabels.roles.bqlIntro}</option>
                 <option value="technician">{uiLabels.roles.technician}</option>
@@ -195,7 +195,7 @@ export function LoginPage() {
               </select>
             </label>
             <Button className="w-full" type="submit">
-              Đăng nhập <ArrowRight size={16} />
+              Tiếp tục <ArrowRight size={16} />
             </Button>
           </form>
           <p className="mt-6 text-center text-xs text-slate-400">
@@ -213,7 +213,7 @@ export function LoginPage() {
           </h2>
           <p className="mt-5 text-base leading-7 text-slate-400">
             Kết nối các phản ánh rời rạc thành quy trình xử lý có phối hợp và kiểm soát, đồng thời
-            giữ nguyên quyền quyết định của con người.
+            giữ nguyên quyền quyết định của BQL.
           </p>
         </div>
       </div>
@@ -887,10 +887,10 @@ export function NotFoundPage() {
     <div className="grid min-h-screen place-items-center bg-slate-50 p-6">
       <div className="text-center">
         <p className="font-mono text-sm font-bold text-indigo-600">404</p>
-        <h1 className="mt-3 text-3xl font-bold text-slate-950">Page not found</h1>
-        <p className="mt-2 text-slate-500">The workspace route you requested does not exist.</p>
+        <h1 className="mt-3 text-3xl font-bold text-slate-950">{uiLabels.errors.notFoundTitle}</h1>
+        <p className="mt-2 text-slate-500">{uiLabels.errors.notFoundDescription}</p>
         <Link to="/">
-          <Button className="mt-6">Return to role selector</Button>
+          <Button className="mt-6">{uiLabels.errors.returnToRoleSelector}</Button>
         </Link>
       </div>
     </div>

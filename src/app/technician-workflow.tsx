@@ -308,7 +308,7 @@ export function TechnicianExecutionPage() {
 
           <Card className="overflow-hidden">
             <SectionHeading
-              title="Phản ánh của cư dân liên quan đến công việc này"
+              title="Các phản ánh liên quan đến công việc này"
               meta={`Hiển thị ${supportingReports.length} trong ${incident.tickets} phản ánh`}
             />
             <div className="divide-y divide-slate-100">

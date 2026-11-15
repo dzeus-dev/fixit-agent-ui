@@ -229,7 +229,7 @@ export function CorrelationReviewPage() {
               <div className="mx-auto max-w-md rounded-xl border-2 border-indigo-200 bg-white p-4 text-center shadow-sm">
                 <span className="font-mono text-xs font-bold text-indigo-600">{incident.id}</span>
                 <p className="mt-1 text-sm font-bold text-slate-950">{getBqlIncidentTitle(incident.title)}</p>
-                <p className="mt-1 text-xs text-slate-500">Sự việc vận hành có thể liên quan</p>
+                <p className="mt-1 text-xs text-slate-500">Sự cố vận hành có thể liên quan</p>
               </div>
               <div className="mx-auto h-5 w-px bg-indigo-200" />
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -260,7 +260,7 @@ export function CorrelationReviewPage() {
               </div>
             </div>
             <p className="border-t border-slate-100 px-5 py-3 text-center text-xs text-slate-500">
-              Đây là các phản ánh riêng biệt có thể mô tả cùng một sự việc vận hành. Việc liên kết
+              Đây là các phản ánh riêng biệt có thể mô tả cùng một sự cố vận hành. Việc liên kết
               không chứng minh các phản ánh có chung nguyên nhân vật lý.
             </p>
           </Card>
@@ -718,8 +718,8 @@ function EvidencePanel({
           <p className="text-xs font-bold text-slate-800">Diễn giải mối liên hệ</p>
           <p className="mt-1 text-xs leading-5 text-slate-600">
             {low
-              ? "Các dấu hiệu cho thấy phản ánh này có thể không thuộc cùng sự việc vận hành."
-              : "Các dấu hiệu cho thấy phản ánh này có thể liên quan đến cùng sự việc vận hành."}
+              ? "Các dấu hiệu cho thấy phản ánh này có thể không thuộc cùng sự cố vận hành."
+              : "Các dấu hiệu cho thấy phản ánh này có thể liên quan đến cùng sự cố vận hành."}
           </p>
           <p className="mt-2 text-xs font-semibold text-slate-700">
             Đây là đề xuất liên kết phản ánh, không phải bằng chứng xác nhận chung nguyên nhân.

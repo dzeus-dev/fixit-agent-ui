@@ -251,7 +251,11 @@ function Sidebar({ role, open, close }: { role: Role; open: boolean; close: () =
       >
         <div className="flex h-[72px] items-center justify-between border-b border-slate-100 px-5">
           <Brand />
-          <button className="text-slate-500 lg:hidden" onClick={close}>
+          <button
+            aria-label={uiLabels.navigation.closeNavigation}
+            className="text-slate-500 lg:hidden"
+            onClick={close}
+          >
             <X size={20} />
           </button>
         </div>
@@ -353,7 +357,11 @@ function TopBar({ role, onMenu }: { role: Role; onMenu: () => void }) {
   const { pathname } = useLocation();
   return (
     <header className="sticky top-0 z-20 flex h-[72px] items-center gap-5 border-b border-slate-200 bg-white/95 px-5 backdrop-blur md:px-8">
-      <button className="text-slate-500 lg:hidden" onClick={onMenu}>
+      <button
+        aria-label={uiLabels.navigation.openNavigation}
+        className="text-slate-500 lg:hidden"
+        onClick={onMenu}
+      >
         <Menu size={21} />
       </button>
       <div className="min-w-0">
@@ -367,6 +375,11 @@ function TopBar({ role, onMenu }: { role: Role; onMenu: () => void }) {
           <Search size={16} />
           <input
             className="w-full bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-400"
+            aria-label={
+              role === "resident"
+                ? uiLabels.navigation.residentSearch
+                : uiLabels.navigation.sharedSearch
+            }
             placeholder={
               role === "resident"
                 ? uiLabels.navigation.residentSearch

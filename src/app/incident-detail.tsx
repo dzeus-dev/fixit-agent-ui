@@ -486,7 +486,7 @@ export function IncidentIntelligencePage() {
                 <p className="text-xs font-bold text-indigo-900">Vì sao các phản ánh có liên quan</p>
                 <p className="mt-1 text-xs leading-5 text-indigo-700">
                   Nội dung vấn đề tương tự, vị trí gần nhau và thời điểm gửi sát nhau cho thấy các
-                  phản ánh có thể liên quan đến cùng một sự việc vận hành. BQL có thể xem xét mối
+                  phản ánh có thể liên quan đến cùng một sự cố vận hành. BQL có thể xem xét mối
                   liên hệ này.
                 </p>
               </div>

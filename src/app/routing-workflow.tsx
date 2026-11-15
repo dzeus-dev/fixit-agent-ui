@@ -154,7 +154,7 @@ export function RoutingRecommendationPage() {
           </Card>
 
           <Card className="overflow-hidden">
-            <SectionHeading title="Các đội điều phối thay thế" meta="Các lựa chọn BQL có thể điều chỉnh" />
+            <SectionHeading title="Các đội kỹ thuật thay thế" meta="Các lựa chọn BQL có thể điều chỉnh" />
             <div className="divide-y divide-slate-100">
               {teamOptions.map((team) => {
                 const recommended = team === incident.recommendedTeam;
