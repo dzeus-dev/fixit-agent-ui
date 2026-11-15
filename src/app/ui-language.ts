@@ -132,6 +132,191 @@ export const uiLabels = {
     "More information needed": "Cần thêm thông tin",
     "Additional safety review required": "Cần kiểm tra an toàn thêm",
   } satisfies Record<ResidentStatus, string>,
+  resident: {
+    report: {
+      eyebrow: "Gửi phản ánh",
+      title: "Gửi phản ánh",
+      description:
+        "Mô tả vấn đề bạn đang gặp phải để Ban Quản lý có thể tiếp nhận và xử lý.",
+      issueLabel: "Nội dung phản ánh",
+      issuePlaceholder: "Mô tả điều bạn nhận thấy và thời điểm vấn đề bắt đầu.",
+      locationLabel: "Vị trí",
+      locationPlaceholder: "Ví dụ: Tòa A · Căn A-1204",
+      additionalDetailsLabel: "Thông tin thêm",
+      optional: "(không bắt buộc)",
+      additionalDetailsPlaceholder: "Bạn có thông tin nào khác muốn gửi Ban Quản lý không?",
+      photoLabel: "Hình ảnh",
+      addPhoto: "Thêm hình ảnh",
+      photoSize: "PNG hoặc JPG, tối đa 10 MB",
+      submit: "Gửi phản ánh",
+    },
+    clarification: {
+      eyebrow: "Bổ sung thông tin",
+      title: "Vui lòng cung cấp thêm thông tin",
+      description: "Thông tin bạn cung cấp sẽ giúp Ban Quản lý hiểu rõ hơn về vấn đề.",
+      drippingQuestion: "Hiện nước có đang nhỏ giọt không?",
+      waterLocationQuestion: "Nước xuất hiện ở đâu?",
+      back: "Quay lại",
+      updateReport: "Cập nhật phản ánh",
+      provideDetails: "Cung cấp thêm thông tin",
+      options: {
+        "Yes, actively dripping": "Có, nước đang nhỏ giọt",
+        "No, only visible water marks": "Không, chỉ thấy vết nước",
+        "Not sure": "Tôi chưa rõ",
+        Ceiling: "Trần nhà",
+        Wall: "Tường",
+        Floor: "Sàn nhà",
+        Other: "Vị trí khác",
+      },
+    },
+    preview: {
+      title: "Cảm ơn bạn — chúng tôi đã nhận phản ánh.",
+      description: "Dưới đây là thông tin chúng tôi ghi nhận. Ban Quản lý sẽ xem xét phản ánh này.",
+      updated: "Cảm ơn bạn. Phản ánh đã được cập nhật.",
+      aiHeading: "AI đã phân tích phản ánh của bạn",
+      understoodAs: "Thông tin được ghi nhận:",
+      issueType: "Thông tin về vấn đề",
+      activeWaterLeak: "Có dấu hiệu rò rỉ nước",
+      status: "Trạng thái",
+      underReview: "Đang được xem xét",
+      aiDisclaimer:
+        "Phân tích này dựa trên mô tả của bạn, không phải kết luận về nguyên nhân thực tế.",
+      relatedIncidentTitle: "Phản ánh này có thể liên quan đến một sự cố đang được xử lý",
+      relatedIncidentDescription:
+        "Khi phù hợp, phản ánh của bạn sẽ được xem xét cùng với sự cố liên quan. Ban Quản lý sẽ xác nhận cách xử lý.",
+      viewStatus: "Theo dõi phản ánh",
+    },
+    ticket: {
+      yourReport: "Phản ánh của bạn",
+      currentStatus: "Trạng thái hiện tại",
+      whatHappensNext: "Tiếp theo sẽ thế nào?",
+      relatedIncidentTitle: "Thông tin về sự cố liên quan",
+      relatedIncidentDescription:
+        "Phản ánh này đang được xử lý cùng với một sự cố liên quan.",
+      moreInformationTitle: "Cần thêm thông tin",
+      moreInformationDescription:
+        "Vui lòng cung cấp thêm thông tin để Ban Quản lý có thể tiếp tục xem xét phản ánh.",
+      safetyTitle: "Cần kiểm tra an toàn thêm",
+      safetyDescription:
+        "Cần kiểm tra thêm về an toàn trước khi tiếp tục xử lý. Vui lòng tránh khu vực bị ảnh hưởng nếu bạn thấy không an toàn.",
+      safetyGuidance: "Cổng cư dân không hỗ trợ điều phối tình huống khẩn cấp.",
+      followUpTitle: "Cần xử lý thêm",
+      followUpDescription:
+        "Vấn đề cần được xử lý thêm. Ban Quản lý đang xem xét bước tiếp theo.",
+      feedbackFollowUp:
+        "Cảm ơn bạn đã phản hồi. Ban Quản lý sẽ tiếp tục xem xét vấn đề này.",
+      noCompletionTime: "Hiện chưa có thời gian hoàn tất cụ thể.",
+      resolutionReviewTitle: "Nhân viên kỹ thuật đã ghi nhận kết quả",
+      resolutionReviewDescription:
+        "Ban Quản lý đang xem xét kết quả xử lý trước khi hoàn tất phản ánh.",
+      resolutionTitle: "Kết quả xử lý",
+      resolvedAt: "Đã xử lý · 15:10",
+      feedbackQuestion: "Vấn đề đã được xử lý ổn chưa?",
+      feedbackConfirmed: "Cảm ơn bạn đã xác nhận vấn đề đã được xử lý.",
+      feedbackResolved: "Đã xử lý xong",
+      feedbackStillHappening: "Vẫn còn vấn đề",
+      progressUpdates: "Cập nhật tiến độ",
+      description: "Nội dung phản ánh",
+      location: "Vị trí",
+      additionalDetails: "Thông tin thêm",
+      photo: "Hình ảnh",
+      photoAttached: "Đã gửi kèm hình ảnh",
+      noPhoto: "Chưa gửi hình ảnh",
+      clarification: "Thông tin bổ sung",
+      demoControl: "Trạng thái bản mẫu",
+      demoHelper: "Xem trước các trạng thái hiển thị cho cư dân.",
+    },
+    statusContent: {
+      "Report received": {
+        title: "Đã nhận phản ánh",
+        description: "Phản ánh của bạn đã được ghi nhận.",
+        next: "Ban Quản lý sẽ xem xét thông tin bạn cung cấp.",
+      },
+      "Being reviewed": {
+        title: "Phản ánh đang được xem xét",
+        description: "Ban Quản lý đang xem xét phản ánh của bạn.",
+        next: "Ban Quản lý đang xác định bước xử lý phù hợp.",
+      },
+      "Maintenance team assigned": {
+        title: "Đã sắp xếp nhân viên kỹ thuật",
+        description: "Ban Quản lý đã sắp xếp nhân viên kỹ thuật để xem xét vấn đề.",
+        next: "Nhân viên kỹ thuật sẽ bắt đầu công việc khi có thể tiếp cận vị trí và điều kiện phù hợp.",
+      },
+      "Maintenance team is working on it": {
+        title: "Nhân viên kỹ thuật đang xử lý",
+        description: "Công việc xử lý đang được thực hiện.",
+        next: "Chúng tôi sẽ cập nhật phản ánh sau khi nhân viên kỹ thuật ghi nhận kết quả.",
+      },
+      "Resolution is being reviewed": {
+        title: "BQL đang xem xét kết quả xử lý",
+        description: "Nhân viên kỹ thuật đã ghi nhận kết quả xử lý.",
+        next: "BQL đang xem xét kết quả trước khi hoàn tất phản ánh.",
+      },
+      "Issue resolved": {
+        title: "Đã xử lý xong",
+        description: "BQL đã hoàn tất việc xem xét kết quả.",
+        next: "Vui lòng cho chúng tôi biết nếu vấn đề vẫn còn.",
+      },
+      "Follow-up required": {
+        title: "Cần xử lý thêm",
+        description: "Vấn đề cần được xử lý thêm.",
+        next: "BQL đang xem xét bước tiếp theo. Hiện chưa có thời gian hoàn tất cụ thể.",
+      },
+      "More information needed": {
+        title: "Cần thêm thông tin",
+        description: "Cần thêm thông tin để Ban Quản lý tiếp tục xem xét phản ánh.",
+        next: "Vui lòng trả lời câu hỏi bên dưới để phản ánh được tiếp tục xem xét.",
+      },
+      "Additional safety review required": {
+        title: "Cần kiểm tra an toàn thêm",
+        description: "Cần kiểm tra thêm về an toàn trước khi tiếp tục xử lý.",
+        next: "Vui lòng tránh khu vực bị ảnh hưởng nếu bạn thấy không an toàn.",
+      },
+    } satisfies Record<ResidentStatus, { title: string; description: string; next: string }>,
+    issueText: {
+      "Water is leaking from my kitchen ceiling.": "Nước đang rò rỉ từ trần bếp nhà tôi.",
+      "Water is leaking from the kitchen ceiling": "Nước rò rỉ từ trần bếp",
+      "Water leakage was addressed by the maintenance team.":
+        "Nhân viên kỹ thuật đã xử lý tình trạng rò rỉ nước.",
+    },
+    locationText: {
+      "Tower A · Unit A-1204": "Tòa A · Căn A-1204",
+    },
+    timeline: {
+      "Your report is being reviewed": "Phản ánh đang được xem xét",
+      "Maintenance work started": "Nhân viên kỹ thuật bắt đầu xử lý",
+      "Maintenance work completed": "Nhân viên kỹ thuật đã ghi nhận kết quả",
+      "Maintenance visit completed": "Nhân viên kỹ thuật đã kiểm tra",
+      "Additional work is required": "Cần xử lý thêm",
+      "More information requested": "Ban Quản lý cần thêm thông tin",
+      "Additional details received": "Đã nhận thêm thông tin",
+      "Resident reported the issue is still happening": "Bạn cho biết vấn đề vẫn còn",
+      "Building management review requested": "Đã chuyển đến Ban Quản lý để xem xét",
+    },
+    clarificationAnswers: {
+      "Yes, actively dripping; water appearing on ceiling":
+        "Có, nước đang nhỏ giọt; nước xuất hiện ở trần nhà.",
+      "Yes, actively dripping; water appearing on wall":
+        "Có, nước đang nhỏ giọt; nước xuất hiện ở tường.",
+      "Yes, actively dripping; water appearing on floor":
+        "Có, nước đang nhỏ giọt; nước xuất hiện ở sàn nhà.",
+      "Yes, actively dripping; water appearing on other":
+        "Có, nước đang nhỏ giọt; nước xuất hiện ở vị trí khác.",
+      "No, only visible water marks; water appearing on ceiling":
+        "Không, chỉ thấy vết nước; nước xuất hiện ở trần nhà.",
+      "No, only visible water marks; water appearing on wall":
+        "Không, chỉ thấy vết nước; nước xuất hiện ở tường.",
+      "No, only visible water marks; water appearing on floor":
+        "Không, chỉ thấy vết nước; nước xuất hiện ở sàn nhà.",
+      "No, only visible water marks; water appearing on other":
+        "Không, chỉ thấy vết nước; nước xuất hiện ở vị trí khác.",
+      "Not sure; water appearing on ceiling": "Tôi chưa rõ; nước xuất hiện ở trần nhà.",
+      "Not sure; water appearing on wall": "Tôi chưa rõ; nước xuất hiện ở tường.",
+      "Not sure; water appearing on floor": "Tôi chưa rõ; nước xuất hiện ở sàn nhà.",
+      "Not sure; water appearing on other": "Tôi chưa rõ; nước xuất hiện ở vị trí khác.",
+    },
+    now: "Vừa xong",
+  },
   sla: {
     label: "SLA",
     states: {
@@ -316,6 +501,50 @@ export function getTechnicianEscalationReasonLabel(reason: string) {
 
 export function getResidentStatusLabel(status: ResidentStatus) {
   return uiLabels.residentStatuses[status];
+}
+
+export function getResidentStatusContent(status: ResidentStatus) {
+  return uiLabels.resident.statusContent[status];
+}
+
+export function getResidentQuestionOptionLabel(option: string) {
+  return uiLabels.resident.clarification.options[
+    option as keyof typeof uiLabels.resident.clarification.options
+  ] ?? option;
+}
+
+export function getResidentIssueText(issue: string) {
+  return uiLabels.resident.issueText[issue as keyof typeof uiLabels.resident.issueText] ?? issue;
+}
+
+export function getResidentLocationText(location: string) {
+  return uiLabels.resident.locationText[
+    location as keyof typeof uiLabels.resident.locationText
+  ] ?? location;
+}
+
+export function getResidentTimelineLabel(label: string) {
+  if (Object.prototype.hasOwnProperty.call(uiLabels.residentStatuses, label)) {
+    return getResidentStatusLabel(label as ResidentStatus);
+  }
+
+  return uiLabels.resident.timeline[label as keyof typeof uiLabels.resident.timeline] ?? label;
+}
+
+export function getResidentTimelineTime(timestamp: string) {
+  return timestamp === "Just now" ? uiLabels.resident.now : timestamp;
+}
+
+export function getResidentClarificationAnswer(answer: string) {
+  const fullAnswer =
+    uiLabels.resident.clarificationAnswers[
+      answer as keyof typeof uiLabels.resident.clarificationAnswers
+    ];
+  return fullAnswer ?? getResidentQuestionOptionLabel(answer);
+}
+
+export function getResidentResolutionSummary(summary: string) {
+  return uiLabels.resident.issueText[summary as keyof typeof uiLabels.resident.issueText] ?? summary;
 }
 
 export function getSlaStateLabel(state: SlaState) {

@@ -13,7 +13,19 @@ import { useNavigate, useParams } from "react-router";
 import { Button, Card, SectionHeading } from "./components";
 import type { ResidentStatus } from "./data";
 import { useResidentState } from "./resident-state";
-import { getProvenanceLabel, getResidentStatusLabel } from "./ui-language";
+import {
+  getProvenanceLabel,
+  getResidentClarificationAnswer,
+  getResidentIssueText,
+  getResidentLocationText,
+  getResidentQuestionOptionLabel,
+  getResidentResolutionSummary,
+  getResidentStatusContent,
+  getResidentStatusLabel,
+  getResidentTimelineLabel,
+  getResidentTimelineTime,
+  uiLabels,
+} from "./ui-language";
 
 type ReportStage = "form" | "clarification" | "preview";
 
@@ -46,14 +58,14 @@ export function ResidentReportPage() {
     return (
       <div className="mx-auto max-w-2xl">
         <ResidentPageHeading
-          eyebrow="One quick step"
-          title="We need a little more information"
-          description="Your answers help the building team understand what to review first."
+          eyebrow={uiLabels.resident.clarification.eyebrow}
+          title={uiLabels.resident.clarification.title}
+          description={uiLabels.resident.clarification.description}
         />
         <Card className="overflow-hidden">
           <div className="border-b border-slate-100 p-6">
             <Question
-              label="Is water currently dripping?"
+              label={uiLabels.resident.clarification.drippingQuestion}
               name="dripping"
               value={dripping}
               setValue={setDripping}
@@ -62,7 +74,7 @@ export function ResidentReportPage() {
           </div>
           <div className="p-6">
             <Question
-              label="Where is the water appearing?"
+              label={uiLabels.resident.clarification.waterLocationQuestion}
               name="water-location"
               value={waterLocation}
               setValue={setWaterLocation}
@@ -71,10 +83,10 @@ export function ResidentReportPage() {
           </div>
           <div className="flex justify-end gap-2 border-t border-slate-100 bg-slate-50 px-6 py-4">
             <Button variant="secondary" onClick={() => setStage("form")}>
-              Back
+              {uiLabels.resident.clarification.back}
             </Button>
             <Button disabled={!dripping || !waterLocation} onClick={submitClarification}>
-              Update report <ArrowRight size={15} />
+              {uiLabels.resident.clarification.updateReport} <ArrowRight size={15} />
             </Button>
           </div>
         </Card>
@@ -86,23 +98,23 @@ export function ResidentReportPage() {
     return (
       <div className="mx-auto max-w-3xl">
         <ResidentPageHeading
-          eyebrow="Report received"
-          title="Thanks — we’ve received your report"
-          description="Here is what we understood. The building management team will review it."
+          eyebrow={getResidentStatusLabel("Report received")}
+          title={uiLabels.resident.preview.title}
+          description={uiLabels.resident.preview.description}
         />
         {clarified && (
           <div
             className="mb-5 flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-semibold text-emerald-800"
             role="status"
           >
-            <CheckCircle2 size={18} /> Thanks. Your report has been updated.
+            <CheckCircle2 size={18} /> {uiLabels.resident.preview.updated}
           </div>
         )}
         <div className="grid gap-5 md:grid-cols-2">
           <Card className="p-5">
             <ProvenanceLabel>Resident-provided information</ProvenanceLabel>
-            <h2 className="mt-3 text-sm font-bold text-slate-950">{issue}</h2>
-            <p className="mt-2 text-sm text-slate-500">{location}</p>
+            <h2 className="mt-3 text-sm font-bold text-slate-950">{getResidentIssueText(issue)}</h2>
+            <p className="mt-2 text-sm text-slate-500">{getResidentLocationText(location)}</p>
             {additionalDetails && (
               <p className="mt-3 rounded-lg bg-slate-50 p-3 text-xs leading-5 text-slate-600">
                 {additionalDetails}
@@ -116,17 +128,25 @@ export function ResidentReportPage() {
           </Card>
           <Card className="border-indigo-200 p-5">
             <span className="rounded bg-indigo-50 px-2 py-1 text-[10px] font-bold uppercase tracking-[0.08em] text-indigo-700">
-              AI-understood information
+              {uiLabels.resident.preview.aiHeading}
             </span>
-            <p className="mt-3 text-xs text-slate-500">We understood your report as:</p>
-            <h2 className="mt-1 text-lg font-bold text-slate-950">Active water leak</h2>
-            <p className="mt-1 text-sm text-slate-600">{location}</p>
+            <p className="mt-3 text-xs text-slate-500">{uiLabels.resident.preview.understoodAs}</p>
+            <h2 className="mt-1 text-lg font-bold text-slate-950">
+              {uiLabels.resident.preview.activeWaterLeak}
+            </h2>
+            <p className="mt-1 text-sm text-slate-600">{getResidentLocationText(location)}</p>
             <div className="mt-4 grid grid-cols-2 gap-3">
-              <PreviewFact label="Possible issue type" value="Plumbing" />
-              <PreviewFact label="Status" value="Under review" />
+              <PreviewFact
+                label={uiLabels.resident.preview.issueType}
+                value={uiLabels.resident.preview.activeWaterLeak}
+              />
+              <PreviewFact
+                label={uiLabels.resident.preview.status}
+                value={uiLabels.resident.preview.underReview}
+              />
             </div>
             <p className="mt-4 text-xs leading-5 text-slate-500">
-              Based on your description. This is not a diagnosis of the physical cause.
+              {uiLabels.resident.preview.aiDisclaimer}
             </p>
           </Card>
         </div>
@@ -135,18 +155,17 @@ export function ResidentReportPage() {
             <Building2 size={19} className="mt-0.5 shrink-0 text-sky-700" />
             <div>
               <h2 className="text-sm font-bold text-slate-950">
-                Your report may be related to an ongoing building issue
+                {uiLabels.resident.preview.relatedIncidentTitle}
               </h2>
               <p className="mt-1 text-sm leading-6 text-slate-600">
-                Your report will be handled together with the existing issue where appropriate.
-                Building management will confirm how the reports should be coordinated.
+                {uiLabels.resident.preview.relatedIncidentDescription}
               </p>
             </div>
           </div>
         </Card>
         <div className="mt-6 flex justify-end">
           <Button onClick={() => navigate("/resident/tickets/TKT-1024")}>
-            View report status <ArrowRight size={16} />
+            {uiLabels.resident.preview.viewStatus} <ArrowRight size={16} />
           </Button>
         </div>
       </div>
@@ -156,51 +175,59 @@ export function ResidentReportPage() {
   return (
     <div className="mx-auto max-w-3xl">
       <ResidentPageHeading
-        eyebrow="Resident report"
-        title="Report an issue"
-        description="Tell us what happened in your own words. You do not need to choose a category or priority."
+        eyebrow={uiLabels.resident.report.eyebrow}
+        title={uiLabels.resident.report.title}
+        description={uiLabels.resident.report.description}
       />
       <Card>
         <form className="space-y-6 p-6" onSubmit={submit}>
           <label className="form-label">
-            Issue description
+            {uiLabels.resident.report.issueLabel}
             <textarea
               className="form-input min-h-32 resize-none"
-              value={issue}
+              value={getResidentIssueText(issue)}
               onChange={(event) => setIssue(event.target.value)}
-              placeholder="Describe what you noticed and when it started."
+              placeholder={uiLabels.resident.report.issuePlaceholder}
               required
             />
           </label>
           <label className="form-label">
-            Location / unit
+            {uiLabels.resident.report.locationLabel}
             <input
               className="form-input"
-              value={location}
+              value={getResidentLocationText(location)}
               onChange={(event) => setLocation(event.target.value)}
-              placeholder="e.g. Tower A · Unit A-1204"
+              placeholder={uiLabels.resident.report.locationPlaceholder}
               required
             />
           </label>
           <label className="form-label">
-            Additional details <span className="font-normal text-slate-400">(optional)</span>
+            {uiLabels.resident.report.additionalDetailsLabel}{" "}
+            <span className="font-normal text-slate-400">
+              {uiLabels.resident.report.optional}
+            </span>
             <textarea
               className="form-input min-h-24 resize-none"
               value={additionalDetails}
               onChange={(event) => setAdditionalDetails(event.target.value)}
-              placeholder="Anything else the building team should know?"
+              placeholder={uiLabels.resident.report.additionalDetailsPlaceholder}
             />
           </label>
           <div>
             <p className="form-label">
-              Photo <span className="font-normal text-slate-400">(optional)</span>
+              {uiLabels.resident.report.photoLabel}{" "}
+              <span className="font-normal text-slate-400">
+                {uiLabels.resident.report.optional}
+              </span>
             </p>
             <label className="mt-2 flex min-h-32 cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-slate-300 bg-slate-50 text-center hover:border-indigo-400 hover:bg-indigo-50/30">
               <UploadCloud size={22} className="text-slate-400" />
               <span className="mt-2 text-sm font-semibold text-slate-700">
-                {photoName || "Add a photo"}
+                {photoName || uiLabels.resident.report.addPhoto}
               </span>
-              <span className="mt-1 text-xs text-slate-400">PNG or JPG up to 10 MB</span>
+              <span className="mt-1 text-xs text-slate-400">
+                {uiLabels.resident.report.photoSize}
+              </span>
               <input
                 type="file"
                 className="hidden"
@@ -211,7 +238,7 @@ export function ResidentReportPage() {
           </div>
           <div className="flex justify-end border-t border-slate-100 pt-5">
             <Button type="submit">
-              Submit report <ArrowRight size={16} />
+              {uiLabels.resident.report.submit} <ArrowRight size={16} />
             </Button>
           </div>
         </form>
@@ -225,7 +252,7 @@ export function ResidentIssueStatusPage() {
   const { ticket, answerClarification, setResidentStatus, submitFeedback } = useResidentState();
   const [clarificationAnswer, setClarificationAnswer] = useState("");
   const [clarificationSent, setClarificationSent] = useState(false);
-  const statusContent = getStatusContent(ticket.residentStatus);
+  const statusContent = getResidentStatusContent(ticket.residentStatus);
   const resolved = ticket.residentStatus === "Issue resolved";
   const followUp = ticket.residentStatus === "Follow-up required";
   const safety = ticket.residentStatus === "Additional safety review required";
@@ -241,14 +268,16 @@ export function ResidentIssueStatusPage() {
     <div className="mx-auto max-w-4xl">
       <div className="mb-6">
         <p className="text-xs font-bold uppercase tracking-[0.12em] text-indigo-600">
-          Your report · {id}
+          {uiLabels.resident.ticket.yourReport} · {id}
         </p>
         <div className="mt-2 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <h1 className="text-2xl font-bold tracking-[-0.035em] text-slate-950">
-              {ticket.issue}
+              {getResidentIssueText(ticket.issue)}
             </h1>
-            <p className="mt-2 text-sm text-slate-500">{ticket.location}</p>
+            <p className="mt-2 text-sm text-slate-500">
+              {getResidentLocationText(ticket.location)}
+            </p>
           </div>
           <ResidentStatusBadge status={ticket.residentStatus} />
         </div>
@@ -259,7 +288,7 @@ export function ResidentIssueStatusPage() {
           className="mb-5 flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-semibold text-emerald-800"
           role="status"
         >
-          <CheckCircle2 size={18} /> Thanks. Your report has been updated and is under review.
+          <CheckCircle2 size={18} /> {uiLabels.resident.preview.updated} {statusContent.description}
         </div>
       )}
 
@@ -268,13 +297,15 @@ export function ResidentIssueStatusPage() {
           <Card className="overflow-hidden border-indigo-200">
             <div className="p-6">
               <p className="text-xs font-bold uppercase tracking-[0.1em] text-indigo-600">
-                Current status
+                {uiLabels.resident.ticket.currentStatus}
               </p>
               <h2 className="mt-2 text-xl font-bold text-slate-950">{statusContent.title}</h2>
               <p className="mt-2 text-sm leading-6 text-slate-600">{statusContent.description}</p>
             </div>
             <div className="border-t border-indigo-100 bg-indigo-50/40 px-6 py-4">
-              <p className="text-xs font-bold text-slate-800">What happens next</p>
+              <p className="text-xs font-bold text-slate-800">
+                {uiLabels.resident.ticket.whatHappensNext}
+              </p>
               <p className="mt-1 text-sm leading-6 text-slate-600">{statusContent.next}</p>
             </div>
           </Card>
@@ -284,14 +315,11 @@ export function ResidentIssueStatusPage() {
               <div className="flex items-start gap-3">
                 <Building2 size={19} className="mt-0.5 shrink-0 text-sky-700" />
                 <div>
-                  <h2 className="text-sm font-bold text-slate-950">Related building issue</h2>
+                  <h2 className="text-sm font-bold text-slate-950">
+                    {uiLabels.resident.ticket.relatedIncidentTitle}
+                  </h2>
                   <p className="mt-1 text-sm leading-6 text-slate-600">
-                    Other residents have reported similar water leakage in this area.{" "}
-                    {ticket.relatedIncidentMessage}
-                  </p>
-                  <p className="mt-2 text-xs text-slate-500">
-                    Building management confirms how reports are coordinated. Reports are not
-                    automatically merged.
+                    {uiLabels.resident.ticket.relatedIncidentDescription}
                   </p>
                 </div>
               </div>
@@ -301,21 +329,23 @@ export function ResidentIssueStatusPage() {
           {needsInfo && (
             <Card className="overflow-hidden border-amber-200">
               <div className="bg-amber-50 p-5">
-                <h2 className="text-base font-bold text-amber-950">More information needed</h2>
+                <h2 className="text-base font-bold text-amber-950">
+                  {uiLabels.resident.ticket.moreInformationTitle}
+                </h2>
                 <p className="mt-1 text-sm leading-6 text-amber-900">
-                  We need a little more information to continue reviewing your report.
+                  {uiLabels.resident.ticket.moreInformationDescription}
                 </p>
               </div>
               <div className="p-5">
                 <Question
-                  label="Is water currently dripping?"
+                  label={uiLabels.resident.clarification.drippingQuestion}
                   name="detail-clarification"
                   value={clarificationAnswer}
                   setValue={setClarificationAnswer}
                   options={["Yes, actively dripping", "No, only visible water marks", "Not sure"]}
                 />
                 <Button className="mt-5" disabled={!clarificationAnswer} onClick={provideDetails}>
-                  Provide more details
+                  {uiLabels.resident.clarification.provideDetails}
                 </Button>
               </div>
             </Card>
@@ -327,14 +357,13 @@ export function ResidentIssueStatusPage() {
                 <ShieldAlert size={20} className="mt-0.5 shrink-0 text-red-700" />
                 <div>
                   <h2 className="text-base font-bold text-slate-950">
-                    Additional safety review required
+                    {uiLabels.resident.ticket.safetyTitle}
                   </h2>
                   <p className="mt-1 text-sm leading-6 text-slate-600">
-                    This issue requires additional safety review before work can continue. Please
-                    avoid the affected area if it appears unsafe.
+                    {uiLabels.resident.ticket.safetyDescription}
                   </p>
                   <p className="mt-2 text-xs text-slate-400">
-                    Static safety guidance. This portal does not provide emergency dispatch.
+                    {uiLabels.resident.ticket.safetyGuidance}
                   </p>
                 </div>
               </div>
@@ -346,19 +375,19 @@ export function ResidentIssueStatusPage() {
               <div className="flex items-start gap-3">
                 <Wrench size={19} className="mt-0.5 shrink-0 text-orange-700" />
                 <div>
-                  <h2 className="text-base font-bold text-slate-950">Follow-up required</h2>
+                  <h2 className="text-base font-bold text-slate-950">
+                    {uiLabels.resident.ticket.followUpTitle}
+                  </h2>
                   <p className="mt-1 text-sm leading-6 text-slate-600">
-                    The maintenance team needs additional work to resolve this issue. Building
-                    management is reviewing the next step.
+                    {uiLabels.resident.ticket.followUpDescription}
                   </p>
                   {ticket.feedback === "Still happening" && (
                     <p className="mt-3 rounded-lg bg-orange-50 p-3 text-sm font-semibold text-orange-900">
-                      Thanks for letting us know. The building management team will review this
-                      issue again.
+                      {uiLabels.resident.ticket.feedbackFollowUp}
                     </p>
                   )}
                   <p className="mt-2 text-xs text-slate-400">
-                    No automatic reassignment or resolution time is promised.
+                    {uiLabels.resident.ticket.noCompletionTime}
                   </p>
                 </div>
               </div>
@@ -371,11 +400,10 @@ export function ResidentIssueStatusPage() {
                 <ClipboardStatusIcon />
                 <div>
                   <h2 className="text-base font-bold text-slate-950">
-                    Maintenance work has been completed
+                    {uiLabels.resident.ticket.resolutionReviewTitle}
                   </h2>
                   <p className="mt-1 text-sm leading-6 text-slate-600">
-                    The building management team is reviewing the result. The broader issue has not
-                    been marked closed yet.
+                    {uiLabels.resident.ticket.resolutionReviewDescription}
                   </p>
                 </div>
               </div>
@@ -388,29 +416,39 @@ export function ResidentIssueStatusPage() {
                 <div className="flex items-center gap-3">
                   <CheckCircle2 size={21} className="text-emerald-700" />
                   <div>
-                    <h2 className="text-base font-bold text-slate-950">Resolution</h2>
+                    <h2 className="text-base font-bold text-slate-950">
+                      {uiLabels.resident.ticket.resolutionTitle}
+                    </h2>
                     <p className="mt-1 text-sm text-slate-600">
-                      {ticket.resolutionSummary ??
-                        "Water leakage was addressed by the maintenance team."}
+                      {getResidentResolutionSummary(
+                        ticket.resolutionSummary ??
+                          "Water leakage was addressed by the maintenance team.",
+                      )}
                     </p>
                   </div>
                 </div>
-                <p className="mt-3 text-xs font-semibold text-emerald-800">Resolved · 15:10</p>
+                <p className="mt-3 text-xs font-semibold text-emerald-800">
+                  {uiLabels.resident.ticket.resolvedAt}
+                </p>
               </div>
               <div className="p-5">
-                <p className="text-sm font-bold text-slate-900">Was your issue resolved?</p>
+                <p className="text-sm font-bold text-slate-900">
+                  {uiLabels.resident.ticket.feedbackQuestion}
+                </p>
                 {ticket.feedback === "Resolved" ? (
                   <p
                     className="mt-3 rounded-lg bg-slate-50 p-3 text-sm font-semibold text-slate-700"
                     role="status"
                   >
-                    Thanks for confirming that the issue is resolved.
+                    {uiLabels.resident.ticket.feedbackConfirmed}
                   </p>
                 ) : (
                   <div className="mt-3 flex flex-wrap gap-2">
-                    <Button onClick={() => submitFeedback("Resolved")}>Yes, resolved</Button>
+                    <Button onClick={() => submitFeedback("Resolved")}>
+                      {uiLabels.resident.ticket.feedbackResolved}
+                    </Button>
                     <Button variant="secondary" onClick={() => submitFeedback("Still happening")}>
-                      Still happening
+                      {uiLabels.resident.ticket.feedbackStillHappening}
                     </Button>
                   </div>
                 )}
@@ -419,7 +457,7 @@ export function ResidentIssueStatusPage() {
           )}
 
           <Card className="overflow-hidden">
-            <SectionHeading title="Progress updates" />
+            <SectionHeading title={uiLabels.resident.ticket.progressUpdates} />
             <div className="p-5">
               {ticket.timeline.map((event, index) => (
                 <div key={`${event.label}-${index}`} className="relative flex gap-4 pb-6 last:pb-0">
@@ -432,8 +470,12 @@ export function ResidentIssueStatusPage() {
                     }`}
                   />
                   <div className="flex-1">
-                    <p className="text-sm font-semibold text-slate-800">{event.label}</p>
-                    <p className="mt-1 text-xs text-slate-400">{event.timestamp}</p>
+                    <p className="text-sm font-semibold text-slate-800">
+                      {getResidentTimelineLabel(event.label)}
+                    </p>
+                    <p className="mt-1 text-xs text-slate-400">
+                      {getResidentTimelineTime(event.timestamp)}
+                    </p>
                   </div>
                 </div>
               ))}
@@ -443,44 +485,72 @@ export function ResidentIssueStatusPage() {
 
         <aside className="space-y-5">
           <Card>
-            <SectionHeading title="Your report" />
+            <SectionHeading title={uiLabels.resident.ticket.yourReport} />
             <dl className="px-5">
-              <ResidentDetailRow label="Description" value={ticket.issue} />
-              <ResidentDetailRow label="Location" value={ticket.location} />
+              <ResidentDetailRow
+                label={uiLabels.resident.ticket.description}
+                value={getResidentIssueText(ticket.issue)}
+              />
+              <ResidentDetailRow
+                label={uiLabels.resident.ticket.location}
+                value={getResidentLocationText(ticket.location)}
+              />
               {ticket.additionalDetails && (
-                <ResidentDetailRow label="Additional details" value={ticket.additionalDetails} />
+                <ResidentDetailRow
+                  label={uiLabels.resident.ticket.additionalDetails}
+                  value={ticket.additionalDetails}
+                />
               )}
               <ResidentDetailRow
-                label="Photo"
-                value={ticket.photoName ? "Photo attached" : "No photo attached"}
+                label={uiLabels.resident.ticket.photo}
+                value={
+                  ticket.photoName
+                    ? uiLabels.resident.ticket.photoAttached
+                    : uiLabels.resident.ticket.noPhoto
+                }
               />
               {ticket.clarificationAnswer && (
-                <ResidentDetailRow label="Clarification" value={ticket.clarificationAnswer} />
+                <ResidentDetailRow
+                  label={uiLabels.resident.ticket.clarification}
+                  value={getResidentClarificationAnswer(ticket.clarificationAnswer)}
+                />
               )}
             </dl>
           </Card>
 
           <details className="rounded-xl border border-dashed border-slate-300 bg-white">
             <summary className="cursor-pointer px-4 py-3 text-xs font-semibold text-slate-500">
-              Prototype / Demo control
+              {uiLabels.resident.ticket.demoControl}
             </summary>
             <div className="border-t border-slate-100 p-4">
               <p className="mb-2 text-xs leading-5 text-slate-400">
-                Preview resident-safe states without exposing internal workflow controls.
+                {uiLabels.resident.ticket.demoHelper}
               </p>
               <select
                 className="form-input mt-0"
                 value={ticket.residentStatus}
                 onChange={(event) => setResidentStatus(event.target.value as ResidentStatus)}
               >
-                <option>Being reviewed</option>
-                <option>Maintenance team assigned</option>
-                <option>Maintenance team is working on it</option>
-                <option>Resolution is being reviewed</option>
-                <option>Issue resolved</option>
-                <option>Follow-up required</option>
-                <option>More information needed</option>
-                <option>Additional safety review required</option>
+                <option value="Being reviewed">{getResidentStatusLabel("Being reviewed")}</option>
+                <option value="Maintenance team assigned">
+                  {getResidentStatusLabel("Maintenance team assigned")}
+                </option>
+                <option value="Maintenance team is working on it">
+                  {getResidentStatusLabel("Maintenance team is working on it")}
+                </option>
+                <option value="Resolution is being reviewed">
+                  {getResidentStatusLabel("Resolution is being reviewed")}
+                </option>
+                <option value="Issue resolved">{getResidentStatusLabel("Issue resolved")}</option>
+                <option value="Follow-up required">
+                  {getResidentStatusLabel("Follow-up required")}
+                </option>
+                <option value="More information needed">
+                  {getResidentStatusLabel("More information needed")}
+                </option>
+                <option value="Additional safety review required">
+                  {getResidentStatusLabel("Additional safety review required")}
+                </option>
               </select>
             </div>
           </details>
@@ -488,57 +558,6 @@ export function ResidentIssueStatusPage() {
       </div>
     </div>
   );
-}
-
-function getStatusContent(status: ResidentStatus) {
-  const content: Record<ResidentStatus, { title: string; description: string; next: string }> = {
-    "Report received": {
-      title: "Report received",
-      description: "We have received your issue report.",
-      next: "The building management team will review the information you provided.",
-    },
-    "Being reviewed": {
-      title: "Your report is being reviewed",
-      description: "The building management team is reviewing your report.",
-      next: "We are confirming the right next step before maintenance work proceeds.",
-    },
-    "Maintenance team assigned": {
-      title: "A maintenance team has been assigned",
-      description: "The building team has arranged for maintenance to review the issue.",
-      next: "The maintenance team will begin work when access and conditions allow.",
-    },
-    "Maintenance team is working on it": {
-      title: "Maintenance team is working on it",
-      description: "Maintenance work is currently in progress.",
-      next: "We will update this report after the maintenance team records the result.",
-    },
-    "Resolution is being reviewed": {
-      title: "Resolution is being reviewed",
-      description: "Maintenance work has been completed.",
-      next: "The building management team is reviewing the result before closing the issue.",
-    },
-    "Issue resolved": {
-      title: "Issue marked as resolved",
-      description: "The building management team has completed its final review.",
-      next: "Please let us know if the issue is still happening.",
-    },
-    "Follow-up required": {
-      title: "Follow-up required",
-      description: "Additional work is needed to resolve this issue.",
-      next: "Building management is reviewing the next step. No specific time is promised yet.",
-    },
-    "More information needed": {
-      title: "More information needed",
-      description: "We need a little more information to continue reviewing your report.",
-      next: "Answer the question below and your report will return to review.",
-    },
-    "Additional safety review required": {
-      title: "Additional safety review required",
-      description: "The issue needs another safety review before work can continue.",
-      next: "Please avoid the affected area if it appears unsafe.",
-    },
-  };
-  return content[status];
 }
 
 function ResidentStatusBadge({ status }: { status: ResidentStatus }) {
@@ -615,7 +634,7 @@ function Question({
               onChange={() => setValue(option)}
               className="size-4 accent-indigo-600"
             />
-            {option}
+            {getResidentQuestionOptionLabel(option)}
           </label>
         ))}
       </div>
