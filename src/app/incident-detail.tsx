@@ -25,6 +25,12 @@ import {
 import { incidents, tickets } from "./data";
 import { useOperationalState } from "./operational-state";
 import { useRoutingDecisions } from "./routing-decision";
+import {
+  getProvenanceLabel,
+  getResolutionStatusLabel,
+  getSlaStateLabel,
+  getTaskStatusLabel,
+} from "./ui-language";
 
 type SlaState = "On track" | "At risk" | "Breached";
 
@@ -40,7 +46,7 @@ function SlaBadge({ state }: { state: SlaState }) {
       className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset ${styles}`}
     >
       <Clock3 size={12} className="mr-1.5" />
-      {state}
+      {getSlaStateLabel(state)}
     </span>
   );
 }
@@ -238,7 +244,7 @@ export function IncidentIntelligencePage() {
             <PriorityBadge priority={incident.priority} />
           </HeaderFact>
           <HeaderFact label="Status">
-            <StatusBadge status={operationalStatus} />
+            <StatusBadge status={operationalStatus} context="incident" />
           </HeaderFact>
           <HeaderFact label="SLA">
             <SlaBadge state={slaState} />
@@ -525,6 +531,7 @@ export function IncidentIntelligencePage() {
                     </p>
                   </div>
                   <StatusBadge
+                    context="incident"
                     status={
                       operationalState.incidentStatus === "Resolved"
                         ? "Resolved"
@@ -537,12 +544,12 @@ export function IncidentIntelligencePage() {
                 <div className="grid gap-px bg-slate-200 sm:grid-cols-2">
                   <ResolutionFact
                     label="Task status"
-                    value={operationalState.taskStatus}
+                    value={getTaskStatusLabel(operationalState.taskStatus)}
                     provenance="System record"
                   />
                   <ResolutionFact
                     label="Resolution status"
-                    value={operationalState.resolution.resolutionStatus}
+                    value={getResolutionStatusLabel(operationalState.resolution.resolutionStatus)}
                     provenance="Technician action"
                     technician
                   />
@@ -679,7 +686,7 @@ export function IncidentIntelligencePage() {
                 <SlaBadge state={slaState} />
               </DetailRow>
               <DetailRow label="Status">
-                <StatusBadge status={operationalStatus} />
+                <StatusBadge status={operationalStatus} context="incident" />
               </DetailRow>
               <DetailRow label="Current team">{operationalTeam}</DetailRow>
             </dl>
@@ -916,7 +923,7 @@ function ResolutionFact({
             technician ? "bg-blue-100 text-blue-700" : "bg-slate-100 text-slate-600"
           }`}
         >
-          {provenance}
+          {getProvenanceLabel(provenance)}
         </span>
       </div>
       <p className="mt-2 text-sm font-semibold leading-5 text-slate-900">{value}</p>
@@ -945,7 +952,7 @@ function TraceabilityValue({
       <span
         className={`rounded px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.07em] ${styles}`}
       >
-        {provenance}
+        {getProvenanceLabel(provenance)}
       </span>
     </span>
   );

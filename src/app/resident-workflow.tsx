@@ -13,6 +13,7 @@ import { useNavigate, useParams } from "react-router";
 import { Button, Card, SectionHeading } from "./components";
 import type { ResidentStatus } from "./data";
 import { useResidentState } from "./resident-state";
+import { getProvenanceLabel, getResidentStatusLabel } from "./ui-language";
 
 type ReportStage = "form" | "clarification" | "preview";
 
@@ -557,7 +558,7 @@ function ResidentStatusBadge({ status }: { status: ResidentStatus }) {
       }`}
     >
       <span className="mr-1.5 size-1.5 rounded-full bg-current opacity-75" />
-      {status}
+      {getResidentStatusLabel(status)}
     </span>
   );
 }
@@ -625,7 +626,7 @@ function Question({
 function ProvenanceLabel({ children }: { children: ReactNode }) {
   return (
     <span className="rounded bg-slate-100 px-2 py-1 text-[10px] font-bold uppercase tracking-[0.08em] text-slate-600">
-      {children}
+      {typeof children === "string" ? getProvenanceLabel(children) : children}
     </span>
   );
 }

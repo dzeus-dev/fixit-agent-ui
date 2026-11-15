@@ -15,6 +15,7 @@ import { Link, useNavigate, useParams } from "react-router";
 import { Button, Card, DetailRow, PriorityBadge, SectionHeading, StatusBadge } from "./components";
 import { incidents } from "./data";
 import { useRoutingDecisions } from "./routing-decision";
+import { formatSlaText, getProvenanceLabel } from "./ui-language";
 
 const teamOptions = [
   "Technical — Plumbing",
@@ -62,7 +63,7 @@ export function RoutingRecommendationPage() {
         <div className="flex flex-wrap items-center gap-2">
           <PriorityBadge priority={incident.priority} />
           <span className="inline-flex items-center gap-1.5 rounded-full bg-orange-50 px-2.5 py-1 text-xs font-bold text-orange-700 ring-1 ring-inset ring-orange-600/15">
-            <Clock3 size={12} /> At risk · {incident.sla}
+            <Clock3 size={12} /> {formatSlaText("At risk · " + incident.sla)}
           </span>
         </div>
       </div>
@@ -333,7 +334,7 @@ export function RoutingApprovalPage() {
             Review the recommendation and system verification before creating an assignment.
           </p>
         </div>
-        <StatusBadge status="Pending Approval" />
+        <StatusBadge status="Pending Approval" context="incident" />
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_380px]">
@@ -385,7 +386,7 @@ export function RoutingApprovalPage() {
               <DetailRow label="Priority">
                 <PriorityBadge priority={incident.priority} />
               </DetailRow>
-              <DetailRow label="SLA">At risk · {incident.sla}</DetailRow>
+              <DetailRow label="SLA">{formatSlaText("At risk · " + incident.sla)}</DetailRow>
               <DetailRow label="Current team">{decision.currentTeam}</DetailRow>
               <DetailRow label="Recommended team">{incident.recommendedTeam}</DetailRow>
               <DetailRow label="Related reports">{incident.tickets}</DetailRow>
@@ -554,7 +555,7 @@ function AssignmentResult({
           </p>
           <h1 className="mt-1 text-2xl font-bold text-slate-950">{team}</h1>
           <div className="mt-3 flex justify-center gap-2">
-            <StatusBadge status="Assigned" />
+            <StatusBadge status="Assigned" context="incident" />
             <Provenance tone="human">Human decision</Provenance>
           </div>
         </div>
@@ -606,7 +607,7 @@ function Provenance({ children, tone }: { children: ReactNode; tone: "ai" | "sys
     <span
       className={`rounded px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.07em] ${styles}`}
     >
-      {children}
+      {typeof children === "string" ? getProvenanceLabel(children) : children}
     </span>
   );
 }

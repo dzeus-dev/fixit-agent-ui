@@ -13,6 +13,7 @@ import {
 import { Link, useNavigate, useParams } from "react-router";
 import { Button, Card, PriorityBadge, SectionHeading, StatusBadge } from "./components";
 import { incidents, tickets, type Ticket } from "./data";
+import { getProvenanceLabel } from "./ui-language";
 
 type CorrelationStatus = "Linked" | "Candidate" | "Excluded";
 type CorrelationStrength = "High" | "Medium" | "Low";
@@ -143,7 +144,7 @@ export function CorrelationReviewPage() {
           </div>
           <div className="grid grid-cols-2 gap-x-8 gap-y-3 text-sm sm:grid-cols-4">
             <CompactFact label="Status">
-              <StatusBadge status={incident.status} />
+              <StatusBadge status={incident.status} context="incident" />
             </CompactFact>
             <CompactFact label="Current team">{incident.currentTeam}</CompactFact>
             <CompactFact label="Official location">{incident.officialLocation}</CompactFact>
@@ -514,7 +515,7 @@ function ProvenanceLabel({
     <span
       className={`rounded px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.07em] ${styles}`}
     >
-      {children}
+      {typeof children === "string" ? getProvenanceLabel(children) : children}
     </span>
   );
 }

@@ -20,30 +20,31 @@ import {
 } from "lucide-react";
 import { Link, NavLink, Outlet, useLocation } from "react-router";
 import type { Priority, Status } from "./data";
+import { getStatusLabel, uiLabels, type StatusContext } from "./ui-language";
 
 type Role = "bql" | "technician" | "resident";
 
 const roleDetails = {
-  bql: { label: "BQL / Dispatcher", initials: "AM", name: "Aisha Malik" },
-  technician: { label: "Technician", initials: "DK", name: "Daniel Kim" },
-  resident: { label: "Resident", initials: "JR", name: "Jordan Reed" },
+  bql: { label: uiLabels.roles.bql, initials: "AM", name: "Aisha Malik" },
+  technician: { label: uiLabels.roles.technician, initials: "DK", name: "Daniel Kim" },
+  resident: { label: uiLabels.roles.resident, initials: "JR", name: "Jordan Reed" },
 };
 
 const titles: Record<string, string> = {
-  "/bql/dashboard": "Operations Dashboard",
-  "/bql/tickets": "Resident Tickets",
-  "/bql/incidents": "Incident Queue",
-  "/technician/tasks": "My Tasks",
-  "/resident/report": "Report an Issue",
+  "/bql/dashboard": uiLabels.titles.operationsDashboard,
+  "/bql/tickets": uiLabels.titles.residentTickets,
+  "/bql/incidents": uiLabels.titles.incidentQueue,
+  "/technician/tasks": uiLabels.titles.tasks,
+  "/resident/report": uiLabels.titles.report,
 };
 
 function getPageTitle(pathname: string) {
-  if (pathname.endsWith("/correlation")) return "Correlation Review";
-  if (pathname.endsWith("/routing")) return "Routing Recommendation";
-  if (pathname.endsWith("/approval")) return "Approval Review";
-  if (/\/bql\/incidents\/[^/]+$/.test(pathname)) return "Incident Detail";
-  if (/\/technician\/tasks\/[^/]+$/.test(pathname)) return "Task Detail";
-  if (/\/resident\/tickets\/[^/]+$/.test(pathname)) return "Report Status";
+  if (pathname.endsWith("/correlation")) return uiLabels.titles.correlationReview;
+  if (pathname.endsWith("/routing")) return uiLabels.titles.routingRecommendation;
+  if (pathname.endsWith("/approval")) return uiLabels.titles.approvalReview;
+  if (/\/bql\/incidents\/[^/]+$/.test(pathname)) return uiLabels.titles.incidentDetail;
+  if (/\/technician\/tasks\/[^/]+$/.test(pathname)) return uiLabels.titles.taskDetail;
+  if (/\/resident\/tickets\/[^/]+$/.test(pathname)) return uiLabels.titles.reportStatus;
   return titles[pathname] ?? "FixIt Agent";
 }
 
@@ -153,12 +154,12 @@ export function PriorityBadge({ priority }: { priority: Priority }) {
     <span
       className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-semibold ring-1 ring-inset ${styles[priority]}`}
     >
-      {priority}
+      {uiLabels.priorities[priority]}
     </span>
   );
 }
 
-export function StatusBadge({ status }: { status: Status }) {
+export function StatusBadge({ status, context }: { status: Status; context: StatusContext }) {
   const styles: Record<Status, string> = {
     Open: "bg-sky-50 text-sky-700 ring-sky-600/15",
     "Pending Approval": "bg-violet-50 text-violet-700 ring-violet-600/15",
@@ -173,7 +174,7 @@ export function StatusBadge({ status }: { status: Status }) {
       className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset ${styles[status]}`}
     >
       <span className="mr-1.5 size-1.5 rounded-full bg-current opacity-75" />
-      {status}
+      {getStatusLabel(status, context)}
     </span>
   );
 }
@@ -238,7 +239,7 @@ function Sidebar({ role, open, close }: { role: Role; open: boolean; close: () =
     <>
       {open && (
         <button
-          aria-label="Close navigation"
+          aria-label={uiLabels.navigation.closeNavigation}
           className="fixed inset-0 z-30 bg-slate-950/30 lg:hidden"
           onClick={close}
         />
@@ -257,49 +258,65 @@ function Sidebar({ role, open, close }: { role: Role; open: boolean; close: () =
         <nav className="flex-1 overflow-y-auto px-3 py-5" onClick={close}>
           {role === "bql" && (
             <>
-              <p className="nav-label">Overview</p>
+              <p className="nav-label">{uiLabels.navigation.overview}</p>
               <NavigationItem
                 to="/bql/dashboard"
-                label="Dashboard"
+                label={uiLabels.navigation.dashboard}
                 icon={<LayoutDashboard size={18} />}
               />
-              <p className="nav-label mt-6">Operations</p>
-              <NavigationItem to="/bql/tickets" label="Tickets" icon={<Ticket size={18} />} />
-              <NavigationItem to="/bql/incidents" label="Incidents" icon={<Gauge size={18} />} />
-              <p className="nav-label mt-6">System</p>
+              <p className="nav-label mt-6">{uiLabels.navigation.operations}</p>
+              <NavigationItem
+                to="/bql/tickets"
+                label={uiLabels.navigation.tickets}
+                icon={<Ticket size={18} />}
+              />
+              <NavigationItem
+                to="/bql/incidents"
+                label={uiLabels.navigation.incidents}
+                icon={<Gauge size={18} />}
+              />
+              <p className="nav-label mt-6">{uiLabels.navigation.system}</p>
               <div className="nav-disabled">
                 <Bell size={18} />
-                <span>Notifications</span>
-                <span className="ml-auto text-[9px] font-bold uppercase">Soon</span>
+                <span>{uiLabels.navigation.notifications}</span>
+                <span className="ml-auto text-[9px] font-bold uppercase">
+                  {uiLabels.navigation.soon}
+                </span>
               </div>
               <div className="nav-disabled">
                 <Settings size={18} />
-                <span>Settings</span>
-                <span className="ml-auto text-[9px] font-bold uppercase">Soon</span>
+                <span>{uiLabels.navigation.settings}</span>
+                <span className="ml-auto text-[9px] font-bold uppercase">
+                  {uiLabels.navigation.soon}
+                </span>
               </div>
             </>
           )}
           {role === "technician" && (
             <>
-              <p className="nav-label">Workspace</p>
+              <p className="nav-label">{uiLabels.navigation.workspace}</p>
               <NavigationItem
                 to="/technician/tasks"
-                label="My Tasks"
+                label={uiLabels.navigation.tasks}
                 icon={<ClipboardList size={18} />}
               />
             </>
           )}
           {role === "resident" && (
             <>
-              <p className="nav-label">Resident portal</p>
-              <NavigationItem to="/resident/report" label="My Reports" icon={<Home size={18} />} />
+              <p className="nav-label">{uiLabels.navigation.residentPortal}</p>
+              <NavigationItem
+                to="/resident/report"
+                label={uiLabels.navigation.reports}
+                icon={<Home size={18} />}
+              />
               <NavLink
                 to="/resident/tickets/TKT-1024"
                 className={({ isActive }) =>
                   `mt-1 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium ${isActive ? "bg-indigo-50 text-indigo-700" : "text-slate-600 hover:bg-slate-50"}`
                 }
               >
-                <Ticket size={18} /> Track Report
+                <Ticket size={18} /> {uiLabels.navigation.trackReport}
               </NavLink>
             </>
           )}
@@ -309,7 +326,7 @@ function Sidebar({ role, open, close }: { role: Role; open: boolean; close: () =
             to="/"
             className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-500 hover:bg-slate-50 hover:text-slate-900"
           >
-            <LogOut size={18} /> Switch workspace
+            <LogOut size={18} /> {uiLabels.navigation.switchWorkspace}
           </Link>
         </div>
       </aside>
@@ -351,13 +368,15 @@ function TopBar({ role, onMenu }: { role: Role; onMenu: () => void }) {
           <input
             className="w-full bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-400"
             placeholder={
-              role === "resident" ? "Search your reports..." : "Search incidents, tickets..."
+              role === "resident"
+                ? uiLabels.navigation.residentSearch
+                : uiLabels.navigation.sharedSearch
             }
           />
           <kbd className="text-[10px] font-semibold text-slate-400">⌘K</kbd>
         </label>
         <button
-          aria-label="Notifications"
+          aria-label={uiLabels.navigation.notifications}
           className="relative grid size-9 place-items-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50"
         >
           <Bell size={17} />

@@ -22,6 +22,13 @@ import {
   type TechnicianTask,
 } from "./data";
 import { useTechnicianTasks } from "./technician-task-state";
+import {
+  formatSlaText,
+  getProvenanceLabel,
+  getResolutionStatusLabel,
+  getTaskStatusLabel,
+  uiLabels,
+} from "./ui-language";
 
 const checklistItems = [
   "Confirm active leak",
@@ -93,7 +100,7 @@ export function TechnicianTaskQueuePage() {
             <div className="border-t border-slate-200 bg-slate-50/70 p-5 lg:border-l lg:border-t-0">
               <QueueFact label="Assigned team" value={heroTask.assignedTeam} />
               <QueueFact label="Assignment source" value="BQL-approved routing" />
-              <QueueFact label="SLA" value={heroTask.sla} />
+              <QueueFact label={uiLabels.sla.label} value={formatSlaText(heroTask.sla)} />
               {heroTask.status === "Assigned" ? (
                 <Button className="mt-4 w-full" onClick={() => startAndOpen(heroTask)}>
                   <Play size={15} /> Start task
@@ -238,7 +245,7 @@ export function TechnicianExecutionPage() {
         <div className="grid border-t border-slate-200 bg-slate-50/70 sm:grid-cols-3">
           <HeaderFact label="Assigned team" value={task.assignedTeam} />
           <HeaderFact label="Assignment source" value="BQL-approved routing" />
-          <HeaderFact label="SLA" value={task.sla} />
+          <HeaderFact label={uiLabels.sla.label} value={formatSlaText(task.sla)} />
         </div>
       </Card>
 
@@ -256,7 +263,7 @@ export function TechnicianExecutionPage() {
               />
               <ContextFact label="Related reports" value={String(incident.tickets)} />
               <ContextFact label="Priority" value={incident.priority} />
-              <ContextFact label="SLA state" value={task.sla} />
+              <ContextFact label="SLA state" value={formatSlaText(task.sla)} />
             </div>
             <div className="flex items-start gap-3 border-t border-slate-100 bg-slate-50 px-5 py-4">
               <ShieldAlert size={17} className="mt-0.5 shrink-0 text-slate-500" />
@@ -398,7 +405,7 @@ export function TechnicianExecutionPage() {
                         <p className="text-sm font-bold text-emerald-900">Task started</p>
                       </div>
                       <dl className="mt-3 space-y-2 text-xs">
-                        <StateRow label="Status" value="In Progress" />
+                        <StateRow label="Status" value={getTaskStatusLabel("In Progress")} />
                         <StateRow label="Started by" value="Technician" />
                         <StateRow label="Time" value={task.startedAt ?? "Prototype state"} />
                       </dl>
@@ -439,7 +446,9 @@ export function TechnicianExecutionPage() {
           <Card className="p-4">
             <div className="flex items-center gap-2">
               <Clock3 size={16} className="text-orange-600" />
-              <p className="text-xs font-bold text-slate-800">SLA · {task.sla}</p>
+              <p className="text-xs font-bold text-slate-800">
+                {uiLabels.sla.label} · {formatSlaText(task.sla)}
+              </p>
             </div>
             <p className="mt-1 text-xs text-slate-500">Mock operational clock</p>
           </Card>
@@ -592,7 +601,9 @@ function ResolutionResult({ task, onQueue }: { task: TechnicianTask; onQueue: ()
             <TaskStatusBadge status={task.status} />
           </DetailRow>
           <DetailRow label="Resolved by">Daniel Kim</DetailRow>
-          <DetailRow label="Resolution">{task.resolutionStatus}</DetailRow>
+          <DetailRow label="Resolution">
+            {task.resolutionStatus ? getResolutionStatusLabel(task.resolutionStatus) : undefined}
+          </DetailRow>
           <DetailRow label="Resolution note">{task.resolutionNote || "Not provided"}</DetailRow>
           <DetailRow label="Finding">{task.finding || "Not provided"}</DetailRow>
           <DetailRow label="Affected area">{task.affectedAreaConfirmed}</DetailRow>
@@ -630,7 +641,7 @@ function TaskStatusBadge({ status }: { status: TaskStatus }) {
       className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset ${styles}`}
     >
       <span className="mr-1.5 size-1.5 rounded-full bg-current opacity-75" />
-      {status}
+      {getTaskStatusLabel(status)}
     </span>
   );
 }
@@ -652,7 +663,7 @@ function Provenance({
     <span
       className={`rounded px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.07em] ${styles}`}
     >
-      {children}
+      {typeof children === "string" ? getProvenanceLabel(children) : children}
     </span>
   );
 }
@@ -689,7 +700,7 @@ function ContextFact({
       <div className="flex items-center gap-2">
         <p className="text-[10px] font-bold uppercase tracking-[0.09em] text-slate-400">{label}</p>
         <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.06em] text-slate-500">
-          {provenance}
+          {getProvenanceLabel(provenance)}
         </span>
       </div>
       <p className="mt-2 text-sm font-bold text-slate-900">{value}</p>

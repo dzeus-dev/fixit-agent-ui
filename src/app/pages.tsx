@@ -40,6 +40,7 @@ import {
   TicketMark,
 } from "./components";
 import { incidents, tickets, type Incident, type Ticket as TicketType } from "./data";
+import { formatSlaText, getSlaStateLabel, uiLabels } from "./ui-language";
 import { IncidentIntelligencePage } from "./incident-detail";
 import { useOperationalState } from "./operational-state";
 import { ResidentIssueStatusPage, ResidentReportPage } from "./resident-workflow";
@@ -49,7 +50,7 @@ import { TechnicianExecutionPage, TechnicianTaskQueuePage } from "./technician-w
 export function EntryPage() {
   const roles = [
     {
-      title: "BQL / Dispatcher",
+      title: uiLabels.roles.bqlIntro,
       description: "Triage reports, coordinate incidents, and approve operational decisions.",
       to: "/bql/dashboard",
       cta: "Enter BQL Console",
@@ -57,14 +58,14 @@ export function EntryPage() {
       primary: true,
     },
     {
-      title: "Technician",
+      title: uiLabels.roles.technician,
       description: "Review assigned work, capture evidence, and update task progress.",
       to: "/technician/tasks",
       cta: "Enter Technician Workspace",
       icon: <HardHat size={22} />,
     },
     {
-      title: "Resident",
+      title: uiLabels.roles.resident,
       description: "Report an issue and follow its status through resolution.",
       to: "/resident/report",
       cta: "Enter Resident Portal",
@@ -98,7 +99,7 @@ export function EntryPage() {
         <div className="grid gap-4 lg:grid-cols-3">
           {roles.map((role) => (
             <Link
-              key={role.title}
+              key={role.to}
               to={role.to}
               className={`group rounded-2xl border p-6 transition duration-200 hover:-translate-y-1 ${
                 role.primary
@@ -178,9 +179,9 @@ export function LoginPage() {
             <label className="form-label">
               Demo role
               <select className="form-input" value={role} onChange={(e) => setRole(e.target.value)}>
-                <option value="bql">BQL / Dispatcher</option>
-                <option value="technician">Technician</option>
-                <option value="resident">Resident</option>
+                <option value="bql">{uiLabels.roles.bqlIntro}</option>
+                <option value="technician">{uiLabels.roles.technician}</option>
+                <option value="resident">{uiLabels.roles.resident}</option>
               </select>
             </label>
             <Button className="w-full" type="submit">
@@ -336,7 +337,7 @@ function SlaBadge({ state }: { state: SlaState }) {
       className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset ${styles}`}
     >
       <Clock3 size={12} className="mr-1.5" />
-      {state}
+      {getSlaStateLabel(state)}
     </span>
   );
 }
@@ -365,7 +366,7 @@ function AttentionRow({
               {item.id}
             </Link>
             <PriorityBadge priority={item.priority} />
-            <StatusBadge status={item.status} />
+            <StatusBadge status={item.status} context="incident" />
           </div>
           <Link
             to={`/bql/incidents/${item.id}`}
@@ -380,7 +381,7 @@ function AttentionRow({
       </div>
       <div className="flex items-center gap-4 lg:block lg:min-w-24">
         <SlaBadge state={item.slaState} />
-        <p className="mt-1.5 text-xs font-medium text-slate-500">{item.slaDetail}</p>
+        <p className="mt-1.5 text-xs font-medium text-slate-500">{formatSlaText(item.slaDetail)}</p>
         <p className="mt-1 text-xs text-slate-500">
           <Ticket size={12} className="mr-1 inline" />
           {item.tickets} related {item.tickets === 1 ? "report" : "reports"}
@@ -554,7 +555,7 @@ export function DashboardPage() {
                   <PriorityBadge priority={item.priority} />
                 </div>
                 <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-slate-500">
-                  <StatusBadge status={item.status} />
+                  <StatusBadge status={item.status} context="incident" />
                   <span>·</span>
                   <span>{item.tickets} reports</span>
                   <span>·</span>
@@ -628,7 +629,9 @@ export function DashboardPage() {
                     <SlaBadge state={item.slaState} />
                   </div>
                   <div className="mt-3 flex items-center justify-between text-xs">
-                    <span className="font-semibold text-slate-700">{item.slaDetail}</span>
+                    <span className="font-semibold text-slate-700">
+                      {formatSlaText(item.slaDetail)}
+                    </span>
                     <span className="text-slate-500">{item.team}</span>
                   </div>
                   <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-100">
@@ -725,7 +728,7 @@ function TicketRow({ ticket }: { ticket: TicketType }) {
         <PriorityBadge priority={ticket.priority} />
       </td>
       <td className="px-5 py-4">
-        <StatusBadge status={ticket.status} />
+        <StatusBadge status={ticket.status} context="ticket" />
       </td>
       <td className="px-5 py-4 whitespace-nowrap text-sm text-slate-500">{ticket.created}</td>
       <td className="px-5 py-4">
@@ -822,7 +825,7 @@ function IncidentRow({ incident }: { incident: Incident }) {
         <PriorityBadge priority={incident.priority} />
       </td>
       <td className="px-5 py-4">
-        <StatusBadge status={incident.status} />
+        <StatusBadge status={incident.status} context="incident" />
       </td>
       <td className="px-5 py-4 whitespace-nowrap text-sm font-medium text-slate-700">
         {incident.currentTeam}
@@ -831,7 +834,7 @@ function IncidentRow({ incident }: { incident: Incident }) {
         className={`px-5 py-4 whitespace-nowrap text-sm font-bold ${slaColors[incident.slaTone]}`}
       >
         <Clock3 size={14} className="mr-1.5 inline" />
-        {incident.sla}
+        {formatSlaText(incident.sla)}
       </td>
     </tr>
   );
